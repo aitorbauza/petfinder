@@ -35,6 +35,11 @@ public class UsuariService {
     public Usuari login(String email, String password) throws Exception {
         Usuari usuari = usuariRepository.findByEmail(email)
                 .orElseThrow(() -> new Exception("Usuari no trobat"));
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+//  Descomentar esto para poder obtener psswd hasheado y meterla en bbdd para todos aquellos users creados antes del hasheo de contraseñas
+//        String hashedPassword = encoder.encode("Aitor1234");
+//        System.out.println(hashedPassword);
 
         if (!passwordEncoder.matches(password, usuari.getPassword())) {
             throw new Exception("Credenciales incorrectas");

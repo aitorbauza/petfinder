@@ -5,9 +5,9 @@ import com.petfinder.petfinderapi.model.Usuari;
 import com.petfinder.petfinderapi.service.UsuariService;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/usuaris")
-@CrossOrigin
 public class UsuariController {
 
     private final UsuariService usuariService;
