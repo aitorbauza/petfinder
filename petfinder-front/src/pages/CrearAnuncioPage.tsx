@@ -47,19 +47,30 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ lat, lng, setLat, s
   );
 };
 
+type EspecieEnumType = typeof EspecieEnum[keyof typeof EspecieEnum];
+
 const CrearAnuncioPage: React.FC = () => {
+  // Leemos el usuario del contexto. Como UserContext ahora hidrata desde localStorage,
+  // user SIEMPRE tendrá valor si el usuario inició sesión previamente.
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
 
   const [nomMascota, setNomMascota] = useState('');
-type EspecieEnumType = typeof EspecieEnum[keyof typeof EspecieEnum];
-const [especieId, setEspecieId] = useState<EspecieEnumType | null>(null);
+  const [especieId, setEspecieId] = useState<EspecieEnumType | null>(null);
   const [raca, setRaca] = useState('');
   const [descripcio, setDescripcio] = useState('');
   const [latitud, setLatitud] = useState(41.3851);
   const [longitud, setLongitud] = useState(2.1734);
   const [estatId] = useState(1);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [loading, setLoading] = useState(false);
+
+  // Redirige si no hay sesión
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   // Detecta tamaño de pantalla
   useEffect(() => {
@@ -69,11 +80,16 @@ const [especieId, setEspecieId] = useState<EspecieEnumType | null>(null);
   }, []);
 
   const handleSubmit = async () => {
-      console.log("El user es:", user?.email);
-    if (!user) return alert('Inicia sesión primero');
+    // user viene del contexto que ya lee localStorage, así nunca es null si está logueado
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    if (!nomMascota.trim()) return alert('Introduce el nombre de la mascota');
     if (!especieId) return alert('Selecciona una especie');
 
     try {
+      setLoading(true);
       await crearAnuncio(user.usuariId, {
         nomMascota,
         especieId,
@@ -83,14 +99,26 @@ const [especieId, setEspecieId] = useState<EspecieEnumType | null>(null);
         longitud,
         estatId,
       });
-      alert('Anuncio creado');
+
+      alert('¡Anuncio creado correctamente!');
+
+      // Limpia el formulario para poder crear otro anuncio sin problema
+      setNomMascota('');
+      setEspecieId(null);
+      setRaca('');
+      setDescripcio('');
+      setLatitud(41.3851);
+      setLongitud(2.1734);
+
       navigate('/mapa');
     } catch (err) {
-      alert('Error creando anuncio');
+      console.error('Error creando anuncio:', err);
+      alert('Error creando anuncio. Inténtalo de nuevo.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Contenedor del contenido, con padding solo en móvil
   const contentContainerStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
@@ -102,9 +130,8 @@ const [especieId, setEspecieId] = useState<EspecieEnumType | null>(null);
   };
 
   return (
-    <div style={{width: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Header mantiene su responsive */}
-      <Header style={isMobile ? { marginBottom: '20px'} : {marginBottom: '20px'}} />
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Header style={isMobile ? { marginBottom: '20px' } : { marginBottom: '20px' }} />
 
       <div style={contentContainerStyle}>
         <h2 style={styles.title}>Crear Anuncio</h2>
@@ -116,14 +143,13 @@ const [especieId, setEspecieId] = useState<EspecieEnumType | null>(null);
           onChange={(e) => setNomMascota(e.target.value)}
         />
 
-        {/* Selector de especie */}
         <select
           style={styles.input}
           value={especieId ?? ''}
           onChange={(e) => {
             const value = e.target.value;
-            if (!value) return setEspecieId(null); // Nada seleccionado
-            setEspecieId(Number(value) as EspecieEnumType); // Convierte string a número
+            if (!value) return setEspecieId(null);
+            setEspecieId(Number(value) as EspecieEnumType);
           }}
         >
           <option value="">Selecciona especie</option>
@@ -147,8 +173,8 @@ const [especieId, setEspecieId] = useState<EspecieEnumType | null>(null);
           onChange={(e) => setDescripcio(e.target.value)}
         />
 
-        <button style={styles.button} onClick={handleSubmit}>
-          Crear Anuncio
+        <button style={styles.button} onClick={handleSubmit} disabled={loading}>
+          {loading ? 'Creando...' : 'Crear Anuncio'}
         </button>
 
         <h3 style={{ marginTop: '20px', marginBottom: '10px' }}>Dónde se ha perdido</h3>

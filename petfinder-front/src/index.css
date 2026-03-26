@@ -129,7 +129,12 @@ input::placeholder, textarea::placeholder {
 
 /* Opcional: para que se ignore dark mode */
 @media (prefers-color-scheme: dark) {
-  html, body, input, textarea {
+  html, body, input, textarea, select {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  select option {
     background-color: #ffffff !important;
     color: #000000 !important;
   }

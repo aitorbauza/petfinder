@@ -1,26 +1,27 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { UserProvider } from './context/UserContext';
-import CrearAnuncioPage from './pages/CrearAnuncioPage';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import MapaPage from './pages/MapaPage';
+import CrearAnuncioPage from './pages/CrearAnuncioPage';
 
 function App() {
   return (
     <UserProvider>
-      <Router>
+      <BrowserRouter>
         <Routes>
-          {/* Redirección inicial */}
-          <Route path="/" element={<Navigate to="/login" />} />
+          {/* Redirige raíz al mapa */}
+          <Route path="/" element={<Navigate to="/mapa" replace />} />
 
-          {/* Rutas */}
+          {/* Auth */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+
+          {/* App */}
           <Route path="/mapa" element={<MapaPage />} />
           <Route path="/crear" element={<CrearAnuncioPage />} />
-
-          {/* Ruta fallback */}
-          <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
-      </Router>
+      </BrowserRouter>
     </UserProvider>
   );
 }
