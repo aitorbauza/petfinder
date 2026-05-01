@@ -7,6 +7,7 @@ import { styles } from '../styles/crearAnuncioStyles';
 import L from 'leaflet';
 import Header from '../components/Header';
 import { EspecieEnum, EspeciesOptions } from '../enums/EspecieEnum';
+import axios from 'axios';
 
 // Configuración iconos Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -50,8 +51,6 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ lat, lng, setLat, s
 type EspecieEnumType = typeof EspecieEnum[keyof typeof EspecieEnum];
 
 const CrearAnuncioPage: React.FC = () => {
-  // Leemos el usuario del contexto. Como UserContext ahora hidrata desde localStorage,
-  // user SIEMPRE tendrá valor si el usuario inició sesión previamente.
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
 
@@ -64,6 +63,11 @@ const CrearAnuncioPage: React.FC = () => {
   const [estatId] = useState(1);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [loading, setLoading] = useState(false);
+  
+  const [imatge, setImatge] = useState<File | null>(null);
+  const [imatgeUrl, setImatgeUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [pujantImatge, setPujantImatge] = useState(false);
 
   // Redirige si no hay sesión
   useEffect(() => {
@@ -79,45 +83,84 @@ const CrearAnuncioPage: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleSubmit = async () => {
-    // user viene del contexto que ya lee localStorage, así nunca es null si está logueado
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    if (!nomMascota.trim()) return alert('Introduce el nombre de la mascota');
-    if (!especieId) return alert('Selecciona una especie');
+  // Funció per pujar la imatge al backend
+  const pujarImatge = async (file: File): Promise<string | null> => {
+    setPujantImatge(true);
+    const formData = new FormData();
+    formData.append('fitxer', file);
 
     try {
-      setLoading(true);
-      await crearAnuncio(user.usuariId, {
-        nomMascota,
-        especieId,
-        raca,
-        descripcio,
-        latitud,
-        longitud,
-        estatId,
+      const response = await axios.post('http://localhost:9090/api/imatges/pujar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
-
-      alert('¡Anuncio creado correctamente!');
-
-      // Limpia el formulario para poder crear otro anuncio sin problema
-      setNomMascota('');
-      setEspecieId(null);
-      setRaca('');
-      setDescripcio('');
-      setLatitud(41.3851);
-      setLongitud(2.1734);
-
-      navigate('/mapa');
-    } catch (err) {
-      console.error('Error creando anuncio:', err);
-      alert('Error creando anuncio. Inténtalo de nuevo.');
+      const url = response.data.url;
+      return url;
+    } catch (error) {
+      alert('Error pujant la imatge. Es crearà l\'anunci sense imatge.');
+      return null;
     } finally {
-      setLoading(false);
+      setPujantImatge(false);
     }
   };
+
+  // Quan es selecciona una imatge
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImatge(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      
+      // Pujar-la automàticament
+      const url = await pujarImatge(file);
+      if (url) {
+        setImatgeUrl(url);
+      }
+    }
+  };
+
+  const handleSubmit = async () => {
+  if (!user) {
+    navigate('/login');
+    return;
+  }
+  if (!nomMascota.trim()) return alert('Introdueix el nom de la mascota');
+  if (!especieId) return alert('Selecciona una espècie');
+
+  try {
+    setLoading(true);
+    
+    // Preparar dades
+    const anunciData = {
+      nomMascota,
+      especieId: Number(especieId),
+      raca: raca || '',
+      descripcio: descripcio || '',
+      latitud: Number(latitud),
+      longitud: Number(longitud),
+      estatId: Number(estatId),
+      imatgeUrl: imatgeUrl || null
+    };
+    
+    // 🔍 LOG per depurar
+    // console.log('📤 Enviant dades:', JSON.stringify(anunciData, null, 2));
+    // console.log('👤 usuariId:', user.usuariId);
+    
+    await crearAnuncio(user.usuariId, anunciData);
+    
+    alert('✅ Anunci creat correctament!');
+    navigate('/mapa');
+  } catch (err) {
+    console.error('Error creant anunci:', err);
+    if (err.response?.data) {
+      console.error('Error del backend:', err.response.data);
+      alert(`Error: ${err.response.data}`);
+    } else {
+      alert('Error creant anunci. Intenta-ho de nou.');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   const contentContainerStyle: React.CSSProperties = {
     display: 'flex',
@@ -127,6 +170,15 @@ const CrearAnuncioPage: React.FC = () => {
     width: '100%',
     padding: isMobile ? '0 15px' : 0,
     boxSizing: 'border-box',
+  };
+
+  const imagePreviewStyle: React.CSSProperties = {
+    width: '100px',
+    height: '100px',
+    objectFit: 'cover',
+    borderRadius: '8px',
+    marginTop: '10px',
+    border: '1px solid #ddd'
   };
 
   return (
@@ -162,10 +214,11 @@ const CrearAnuncioPage: React.FC = () => {
 
         <input
           style={styles.input}
-          placeholder="Raza"
+          placeholder="Raza (opcional)"
           value={raca}
           onChange={(e) => setRaca(e.target.value)}
         />
+        
         <input
           style={styles.input}
           placeholder="Descripción"
@@ -173,11 +226,29 @@ const CrearAnuncioPage: React.FC = () => {
           onChange={(e) => setDescripcio(e.target.value)}
         />
 
-        <button style={styles.button} onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Creando...' : 'Crear Anuncio'}
+        {/* Input per a la imatge */}
+        <div style={{ width: '100%', textAlign: 'left' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+            Imatge de la mascota (opcional)
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            disabled={pujantImatge}
+            style={{ marginBottom: '10px' }}
+          />
+          {pujantImatge && <p style={{ color: '#666' }}>⏳ Pujant imatge...</p>}
+          {previewUrl && (
+            <img src={previewUrl} alt="Previsualització" style={imagePreviewStyle} />
+          )}
+        </div>
+
+        <button style={styles.button} onClick={handleSubmit} disabled={loading || pujantImatge}>
+          {loading ? 'Creant...' : 'Crear Anuncio'}
         </button>
 
-        <h3 style={{ marginTop: '20px', marginBottom: '10px' }}>Dónde se ha perdido</h3>
+        <h3 style={{ marginTop: '20px', marginBottom: '10px' }}>On s'ha perdut?</h3>
         <MapContainer center={[latitud, longitud]} zoom={13} style={styles.mapContainer}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <LocationSelector lat={latitud} lng={longitud} setLat={setLatitud} setLng={setLongitud} />

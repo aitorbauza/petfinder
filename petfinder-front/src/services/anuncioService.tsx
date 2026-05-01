@@ -2,7 +2,16 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:9090/api/anuncis';
 
-export const crearAnuncio = (usuariId: number, anuncioData: any) => {
+export const crearAnuncio = (usuariId: number, anuncioData: {  // Dades necessàries per crear un anunci
+  nomMascota: string;
+  especieId: number;
+  raca: string | null;
+  descripcio: string;
+  latitud: number;
+  longitud: number;
+  estatId: number;
+  imatgeUrl: string | null;
+}) => {
   return axios.post(`${API_URL}/crear?usuariId=${usuariId}`, anuncioData);
 };
 

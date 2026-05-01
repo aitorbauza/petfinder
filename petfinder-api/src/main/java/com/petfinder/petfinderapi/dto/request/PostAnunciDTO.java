@@ -16,4 +16,5 @@ public class PostAnunciDTO {
     private Long estatId;         // Perdida/Trobada
     private Double latitud;
     private Double longitud;
+    private String imatgeUrl;
 }

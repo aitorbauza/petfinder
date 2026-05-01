@@ -1,5 +1,6 @@
 package com.petfinder.petfinderapi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +17,6 @@ public class Usuari {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long usuariId;
 
-    @Column(nullable = false, length = 100)
     private String nom;
 
     @Column(nullable = false, length = 500)
@@ -35,8 +35,10 @@ public class Usuari {
     private String imatgeUrl;
 
     @OneToMany(mappedBy = "usuari", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Mascota> mascotas;
 
     @ManyToMany(mappedBy = "usuaris")
+    @JsonIgnore
     private Set<Conversa> converses;
 }

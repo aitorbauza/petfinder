@@ -13,4 +13,5 @@ public class AnunciDTO {
     private String nomMascota;
     private String especie;
     private LocalDateTime data;
+    private String imatgeUrl;
 }

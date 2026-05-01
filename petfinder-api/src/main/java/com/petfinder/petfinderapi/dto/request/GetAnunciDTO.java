@@ -13,4 +13,5 @@ public class GetAnunciDTO {
     private Double latitud;
     private Double longitud;
     private LocalDateTime data;
+    private String imatgeUrl;
 }

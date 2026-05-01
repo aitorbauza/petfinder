@@ -1,5 +1,6 @@
 package com.petfinder.petfinderapi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,16 +17,17 @@ public class Mascota {
     private Long mascotaId;
 
     @Column(length = 100)
-    private String nom; // raça
+    private String nom;
 
     @Column(length = 100)
-    private String raca; // raça
+    private String raca;
 
     @Column(length = 200)
     private String descripcio;
 
     @ManyToOne
     @JoinColumn(name = "id_usuari")
+    @JsonIgnore
     private Usuari usuari;
 
     @ManyToOne
@@ -33,8 +35,10 @@ public class Mascota {
     private Especie especie;
 
     @OneToMany(mappedBy = "mascota", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Imatge> imatges;
 
     @OneToMany(mappedBy = "mascota", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Anunci> anuncis;
 }

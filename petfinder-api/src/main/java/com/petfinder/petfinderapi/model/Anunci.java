@@ -1,5 +1,6 @@
 package com.petfinder.petfinderapi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,5 +32,6 @@ public class Anunci {
 
     @ManyToOne
     @JoinColumn(name = "id_mascota")
+    @JsonIgnore
     private Mascota mascota;
 }

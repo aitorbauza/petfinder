@@ -6,6 +6,7 @@ import com.petfinder.petfinderapi.mapper.AnunciMapper;
 import com.petfinder.petfinderapi.model.*;
 import com.petfinder.petfinderapi.repository.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,20 +20,24 @@ public class AnunciService {
     private final EstatRepository estatRepository;
     private final EspecieRepository especieRepository;
     private final UsuariRepository usuariRepository;
+    private final ImatgeRepository imatgeRepository;
 
     public AnunciService(
             AnunciRepository anunciRepository,
             MascotaRepository mascotaRepository,
             EstatRepository estatRepository,
             EspecieRepository especieRepository,
-            UsuariRepository usuariRepository) {
+            UsuariRepository usuariRepository,
+            ImatgeRepository imatgeRepository) {
         this.anunciRepository = anunciRepository;
         this.mascotaRepository = mascotaRepository;
         this.estatRepository = estatRepository;
         this.especieRepository = especieRepository;
         this.usuariRepository = usuariRepository;
+        this.imatgeRepository = imatgeRepository;
     }
 
+    @Transactional
     public void crearAnunci(PostAnunciDTO dto, Long usuariId) throws Exception {
 
         // Buscar usuario
@@ -52,12 +57,27 @@ public class AnunciService {
 
             mascota = new Mascota();
             mascota.setNom(dto.getNomMascota());
-            mascota.setRaca(dto.getRaca());
             mascota.setDescripcio(dto.getDescripcio());
             mascota.setEspecie(especie);
             mascota.setUsuari(usuari);
 
+            if (dto.getRaca() != null && !dto.getRaca().isEmpty()) {
+                mascota.setRaca(dto.getRaca());
+            } else {
+                mascota.setRaca("Sense raça"); // Valor por defecto si no se proporciona raza
+            }
+
+            // Guardam la mascota per obtenir un ID
             mascota = mascotaRepository.save(mascota);
+            System.out.println("✅ Mascota guardada amb ID: " + mascota.getMascotaId());
+
+            // Guardam la imatge (ara la mascota ja té ID)
+            if (dto.getImatgeUrl() != null && !dto.getImatgeUrl().isEmpty()) {
+                Imatge imatge = new Imatge();
+                imatge.setUrl(dto.getImatgeUrl());
+                imatge.setMascota(mascota);
+                imatgeRepository.save(imatge);
+            }
         }
 
         Estat estat = estatRepository.findById(dto.getEstatId())

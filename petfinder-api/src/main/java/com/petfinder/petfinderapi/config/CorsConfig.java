@@ -8,10 +8,6 @@ import org.springframework.web.filter.CorsFilter;
 
 import java.util.List;
 
-/**
- * Añade este archivo en el paquete de configuración de tu proyecto Spring Boot.
- * Por ejemplo: src/main/java/com/petfinder/config/CorsConfig.java
- */
 @Configuration
 public class CorsConfig {
 
@@ -26,8 +22,6 @@ public class CorsConfig {
         config.setAllowedOrigins(List.of("http://localhost:5173"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-
-        // Necesario si usas cookies o sesiones (no hace daño aunque no las uses)
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
