@@ -23,7 +23,7 @@ const petIcon = new L.Icon({
 });
 
 const API_URL = 'http://localhost:9090';
-const PLACEHOLDER_URL = `${API_URL}/uploads/placeholder-logo-3-300x300.png`;
+const PLACEHOLDER_URL = `${API_URL}/uploads/mascotes/placeholder-logo-3-300x300.png`;
 
 interface Anuncio {
   id: number;

@@ -4,6 +4,9 @@ interface User {
   usuariId: number;
   nom: string;
   email: string;
+  telefon?: string;
+  rol?: string;
+  imatgeUrl?: string | null;
 }
 
 interface UserContextType {

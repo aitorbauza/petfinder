@@ -11,4 +11,5 @@ public class PostUsuariDTO {
     private String email;
     private String telefon;
     private String password; // para beta simple
+    private String imatgeUrl;
 }

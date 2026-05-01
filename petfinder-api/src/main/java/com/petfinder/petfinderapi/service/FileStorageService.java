@@ -15,9 +15,23 @@ public class FileStorageService {
     @Value("${app.upload.dir:uploads/}")
     private String uploadDir;
 
-    public String storeFile(MultipartFile file) throws IOException {
+    @Value("${app.upload.mascotes:uploads/mascotes/}")
+    private String mascotesDir;
+
+    @Value("${app.upload.perfils:uploads/perfils/}")
+    private String perfilsDir;
+
+    public String  storeMascotaImage(MultipartFile file) throws IOException {
+        return storeFile(file, mascotesDir, "mascotes/");
+    }
+
+    public String storePerfilImage(MultipartFile file) throws IOException {
+        return storeFile(file, perfilsDir, "perfils/");
+    }
+
+    private String storeFile(MultipartFile file, String directory, String urlPrefix) throws IOException {
         // Crear directori si no existeix
-        Path uploadPath = Paths.get(uploadDir);
+        Path uploadPath = Paths.get(directory);
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
@@ -37,6 +51,6 @@ public class FileStorageService {
         Files.copy(file.getInputStream(), filePath);
 
         // Retornar URL relativa
-        return "/uploads/" + fileName;
+        return "/uploads/" + urlPrefix + fileName;
     }
 }

@@ -22,6 +22,7 @@ export const registerUser = (userData: {
   password: string;
   telefon?: string;
   rol?: string;
+  imatgeUrl?: string | null; 
 }) => {
   return axios.post(`${API_URL}/crear`, userData);
 };

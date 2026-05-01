@@ -27,6 +27,7 @@ public class UsuariService {
         usuari.setEmail(dto.getEmail());
         usuari.setTelefon(dto.getTelefon());
         usuari.setRol("USER"); // valor por defecto
+        usuari.setImatgeUrl(dto.getImatgeUrl());  // ← Guardar imatge de perfil
         String hashedPassword = passwordEncoder.encode(dto.getPassword());
         usuari.setPassword(hashedPassword);
         return usuariRepository.save(usuari);
@@ -46,5 +47,12 @@ public class UsuariService {
         }
 
         return usuari; // Devuelves el usuariId al front
+    }
+
+    public Usuari actualitzarImatgePerfil(Long usuariId, String imatgeUrl) throws Exception {
+        Usuari usuari = usuariRepository.findById(usuariId)
+                .orElseThrow(() -> new Exception("Usuari no trobat"));
+        usuari.setImatgeUrl(imatgeUrl);
+        return usuariRepository.save(usuari);
     }
 }

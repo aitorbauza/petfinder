@@ -22,7 +22,7 @@ public class ImatgeController {
                 return ResponseEntity.badRequest().body(Map.of("error", "El fitxer està buit"));
             }
 
-            String url = fileStorageService.storeFile(fitxer);
+            String url = fileStorageService.storeMascotaImage(fitxer);
 
             return ResponseEntity.ok(Map.of("url", url));
         } catch (Exception e) {
