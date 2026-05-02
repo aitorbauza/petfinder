@@ -89,12 +89,21 @@ public class AnunciService {
         anunci.setLatitud(dto.getLatitud());
         anunci.setLongitud(dto.getLongitud());
         anunci.setData(LocalDateTime.now());
+        anunci.setCiutat(dto.getCiutat());
+        anunci.setProvincia(dto.getProvincia());
 
         anunciRepository.save(anunci);
     }
 
     public List<GetAnunciDTO> llistarAnuncis() {
         return anunciRepository.findAll()
+                .stream()
+                .map(AnunciMapper::toGetDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<GetAnunciDTO> llistarAnuncisPerUsuari(Long usuariId) {
+        return anunciRepository.findByMascota_Usuari_UsuariId(usuariId)
                 .stream()
                 .map(AnunciMapper::toGetDTO)
                 .collect(Collectors.toList());

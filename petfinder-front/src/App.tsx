@@ -5,6 +5,7 @@ import RegisterPage from './pages/RegisterPage';
 import MapaPage from './pages/MapaPage';
 import CrearAnuncioPage from './pages/CrearAnuncioPage';
 import PerfilPage from './pages/PerfilPage';
+import MisAnunciosPage from './pages/MisAnunciosPage';
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
           <Route path="/crear" element={<CrearAnuncioPage />} />
 
           <Route path="/perfil" element={<PerfilPage />} />
-          {/* <Route path="/mis-anuncios" element={<MisAnunciosPage />} */ /*/> Per crear després */}
+          <Route path="/mis-anuncios" element={<MisAnunciosPage />} />
         </Routes>
       </BrowserRouter>
     </UserProvider>

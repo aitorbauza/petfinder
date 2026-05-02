@@ -26,6 +26,10 @@ public class Anunci {
     @Column
     private Double longitud;
 
+    private String ciutat;
+
+    private String provincia;
+
     @ManyToOne
     @JoinColumn(name = "id_estat")
     private Estat estat;

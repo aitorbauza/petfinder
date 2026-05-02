@@ -8,6 +8,7 @@ import L from 'leaflet';
 import Header from '../components/Header';
 import { EspecieEnum, EspeciesOptions } from '../enums/EspecieEnum';
 import axios from 'axios';
+import { getUbicacioFromCoords } from '../services/ubicacioService';
 
 // Configuración iconos Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -30,13 +31,15 @@ interface LocationSelectorProps {
   lng: number;
   setLat: (lat: number) => void;
   setLng: (lng: number) => void;
+  onLocationChange: (lat: number, lng: number) => void;
 }
 
-const LocationSelector: React.FC<LocationSelectorProps> = ({ lat, lng, setLat, setLng }) => {
+const LocationSelector: React.FC<LocationSelectorProps> = ({ lat, lng, setLat, setLng, onLocationChange }) => {
   useMapEvents({
     click(e) {
       setLat(e.latlng.lat);
       setLng(e.latlng.lng);
+      onLocationChange(e.latlng.lat, e.latlng.lng);
     },
   });
 
@@ -51,6 +54,7 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ lat, lng, setLat, s
           const position = marker.getLatLng();
           setLat(position.lat);
           setLng(position.lng);
+          onLocationChange(position.lat, position.lng);
         },
       }}
     />
@@ -75,10 +79,16 @@ const CrearAnuncioPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   
+  // Estats per a la imatge
   const [imatge, setImatge] = useState<File | null>(null);
   const [imatgeUrl, setImatgeUrl] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [pujantImatge, setPujantImatge] = useState(false);
+
+  // Estats per a la ubicació textual
+  const [ciutat, setCiutat] = useState('');
+  const [provincia, setProvincia] = useState('');
+  const [obtenintUbicacio, setObtenintUbicacio] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -90,6 +100,34 @@ const CrearAnuncioPage: React.FC = () => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Obtenir ubicació textual en canviar les coordenades
+  const obtenirUbicacioPerCoordenades = async (lat: number, lng: number) => {
+    setObtenintUbicacio(true);
+    try {
+      const ubicacio = await getUbicacioFromCoords(lat, lng);
+      if (ubicacio) {
+        setCiutat(ubicacio.ciutat);
+        setProvincia(ubicacio.provincia);
+      } else {
+        setCiutat('');
+        setProvincia('');
+      }
+    } catch (error) {
+      console.error('Error obtenint ubicació:', error);
+      setCiutat('');
+      setProvincia('');
+    } finally {
+      setObtenintUbicacio(false);
+    }
+  };
+
+  // Quan canvien les coordenades inicials (per defecte), obtenir ubicació
+  useEffect(() => {
+    if (latitud && longitud) {
+      obtenirUbicacioPerCoordenades(latitud, longitud);
+    }
   }, []);
 
   const pujarImatge = async (file: File): Promise<string | null> => {
@@ -154,6 +192,12 @@ const CrearAnuncioPage: React.FC = () => {
     }
   };
 
+  const handleLocationChange = (lat: number, lng: number) => {
+    setLatitud(lat);
+    setLongitud(lng);
+    obtenirUbicacioPerCoordenades(lat, lng);
+  };
+
   const handleSubmit = async () => {
     if (!user) {
       navigate('/login');
@@ -173,8 +217,12 @@ const CrearAnuncioPage: React.FC = () => {
         latitud: Number(latitud),
         longitud: Number(longitud),
         estatId: Number(estatId),
-        imatgeUrl: imatgeUrl || null
+        imatgeUrl: imatgeUrl || null,
+        ciutat: ciutat,
+        provincia: provincia
       };
+      
+      console.log('📤 Enviant anunci:', anunciData);
       
       await crearAnuncio(user.usuariId, anunciData);
       
@@ -190,64 +238,6 @@ const CrearAnuncioPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Estils per al layout desktop
-  const desktopLayoutStyle: React.CSSProperties = {
-    display: 'flex',
-    flexDirection: 'row',
-    gap: '30px',
-    padding: '20px',
-    width: '100%',
-    maxWidth: '1400px',
-    margin: '0 auto',
-  };
-
-  const formSectionStyle: React.CSSProperties = {
-    flex: '0 0 66%',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  };
-
-  const mapSectionStyle: React.CSSProperties = {
-    flex: '0 0 34%',
-    position: 'sticky',
-    top: '20px',
-    alignSelf: 'flex-start',
-  };
-
-  // Drag & Drop per a desktop (més gran)
-  const dragDropZoneStyle: React.CSSProperties = {
-    border: `2px dashed ${isDragging ? '#06682D' : '#ccc'}`,
-    borderRadius: '16px',
-    padding: '0',
-    textAlign: 'center',
-    cursor: 'pointer',
-    backgroundColor: isDragging ? '#e8f5e9' : '#f9f9f9',
-    transition: 'all 0.2s ease',
-    width: '100%',
-    maxWidth: '300px',
-    height: '250px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  };
-
-  // Mapa desktop (més gran)
-  const desktopMapStyle: React.CSSProperties = {
-    height: '450px',
-    width: '100%',
-    borderRadius: '12px',
-  };
-
-  // Mapa mòbil (ample complet)
-  const mobileMapStyle: React.CSSProperties = {
-    width: '100%',
-    height: '40vh',
-    borderRadius: '12px',
   };
 
   // Layout mòbil
@@ -275,7 +265,7 @@ const CrearAnuncioPage: React.FC = () => {
           />
 
           <select
-            style={{ ...styles.input, maxWidth: '100%' }}
+            style={{ ...styles.select, maxWidth: '100%' }}
             value={especieId ?? ''}
             onChange={(e) => {
               const value = e.target.value;
@@ -305,7 +295,6 @@ const CrearAnuncioPage: React.FC = () => {
             onChange={(e) => setDescripcio(e.target.value)}
           />
 
-          {/* Input normal per a mòbil (sense drag & drop) */}
           <div style={{ width: '100%' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
               Imatge de la mascota (opcional)
@@ -332,139 +321,190 @@ const CrearAnuncioPage: React.FC = () => {
           </button>
 
           <h3 style={{ marginTop: '20px', marginBottom: '10px' }}>On s'ha perdut?</h3>
-          <MapContainer center={[latitud, longitud]} zoom={13} style={mobileMapStyle}>
+          
+          {/* Mostrar ubicació textual */}
+          {obtenintUbicacio && (
+            <p style={{ fontSize: '12px', color: '#666' }}>⏳ Obtenint ubicació...</p>
+          )}
+          {!obtenintUbicacio && (ciutat || provincia) && (
+            <p style={{ fontSize: '12px', color: '#06682D', marginTop: '-10px' }}>
+              📍 {provincia && ciutat ? `${provincia} - ${ciutat}` : ciutat || provincia}
+            </p>
+          )}
+          
+          <MapContainer 
+            center={[latitud, longitud]} 
+            zoom={13} 
+            style={mobileMapStyle}
+          >
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <LocationSelector lat={latitud} lng={longitud} setLat={setLatitud} setLng={setLongitud} />
+            <LocationSelector 
+              lat={latitud} 
+              lng={longitud} 
+              setLat={setLatitud} 
+              setLng={setLongitud} 
+              onLocationChange={handleLocationChange}
+            />
           </MapContainer>
         </div>
       </div>
     );
   }
 
-return (
-  <div style={styles.container}>
-    <Header style={{ marginBottom: '20px' }} />
+  // Layout Desktop
+  const desktopMapStyle: React.CSSProperties = {
+    height: '450px',
+    width: '100%',
+    borderRadius: '12px',
+  };
 
-    <div style={styles.desktopLayout}>
-      {/* Secció esquerra: Formulari (60%) */}
-      <div style={styles.formSection}>
-        <h2 style={{ ...styles.title, textAlign: 'left', marginTop: 0, marginBottom: '10px' }}>Crear Anuncio</h2>
+  const mobileMapStyle: React.CSSProperties = {
+    width: '100%',
+    height: '40vh',
+    borderRadius: '12px',
+  };
 
-        <input
-          style={{ ...styles.input, maxWidth: '100%' }}
-          placeholder="Nombre Mascota"
-          value={nomMascota}
-          onChange={(e) => setNomMascota(e.target.value)}
-        />
+  return (
+    <div style={styles.container}>
+      <Header style={{ marginBottom: '20px' }} />
 
-        <select
-          style={{ ...styles.select, maxWidth: '100%' }}
-          value={especieId ?? ''}
-          onChange={(e) => {
-            const value = e.target.value;
-            if (!value) return setEspecieId(null);
-            setEspecieId(Number(value) as EspecieEnumType);
-          }}
-        >
-          <option value="">Selecciona especie</option>
-          {EspeciesOptions.map((op) => (
-            <option key={op.id} value={op.id}>
-              {op.label}
-            </option>
-          ))}
-        </select>
+      <div style={styles.desktopLayout}>
+        {/* Secció esquerra: Formulari */}
+        <div style={styles.formSection}>
+          <h2 style={{ ...styles.title, textAlign: 'left', marginTop: 0, marginBottom: '10px' }}>Crear Anuncio</h2>
 
-        <input
-          style={{ ...styles.input, maxWidth: '100%' }}
-          placeholder="Raza (opcional)"
-          value={raca}
-          onChange={(e) => setRaca(e.target.value)}
-        />
-        
-        <input
-          style={{ ...styles.input, maxWidth: '100%' }}
-          placeholder="Descripción"
-          value={descripcio}
-          onChange={(e) => setDescripcio(e.target.value)}
-        />
-
-        {/* Drag & Drop per a desktop - Títol alineat a l'esquerra */}
-        <div>
-          <label style={{ ...styles.label, textAlign: 'left' }}>
-            Imatge de la mascota (opcional)
-          </label>
-          <div
-            style={{
-              ...styles.dragDropZone,
-              border: `2px dashed ${isDragging ? '#06682D' : '#d0d0d0'}`,
-              backgroundColor: isDragging ? '#e8f5e9' : '#fafafa',
-            }}
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          >
-            {pujantImatge ? (
-              <p>⏳ Pujant imatge...</p>
-            ) : previewUrl ? (
-              <img 
-                src={previewUrl} 
-                alt="Previsualització" 
-                style={styles.previewImageDesktop} 
-              />
-            ) : (
-              <>
-                <span style={styles.dragDropIcon}>🐾</span>
-                <p style={styles.dragDropText}>Arrossega una imatge</p>
-                <p style={styles.dragDropSubtext}>o fes clic per seleccionar</p>
-                <p style={styles.dragDropSmallText}>JPG, PNG, GIF (max 5MB)</p>
-              </>
-            )}
-          </div>
           <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            style={{ display: 'none' }}
+            style={{ ...styles.input, maxWidth: '100%' }}
+            placeholder="Nombre Mascota"
+            value={nomMascota}
+            onChange={(e) => setNomMascota(e.target.value)}
           />
+
+          <select
+            style={{ ...styles.select, maxWidth: '100%' }}
+            value={especieId ?? ''}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (!value) return setEspecieId(null);
+              setEspecieId(Number(value) as EspecieEnumType);
+            }}
+          >
+            <option value="">Selecciona especie</option>
+            {EspeciesOptions.map((op) => (
+              <option key={op.id} value={op.id}>
+                {op.label}
+              </option>
+            ))}
+          </select>
+
+          <input
+            style={{ ...styles.input, maxWidth: '100%' }}
+            placeholder="Raza (opcional)"
+            value={raca}
+            onChange={(e) => setRaca(e.target.value)}
+          />
+          
+          <input
+            style={{ ...styles.input, maxWidth: '100%' }}
+            placeholder="Descripción"
+            value={descripcio}
+            onChange={(e) => setDescripcio(e.target.value)}
+          />
+
+          {/* Drag & Drop per a desktop */}
+          <div>
+            <label style={{ ...styles.label, textAlign: 'left' }}>
+              Imatge de la mascota (opcional)
+            </label>
+            <div
+              style={{
+                ...styles.dragDropZone,
+                border: `2px dashed ${isDragging ? '#06682D' : '#d0d0d0'}`,
+                backgroundColor: isDragging ? '#e8f5e9' : '#fafafa',
+              }}
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              {pujantImatge ? (
+                <p>⏳ Pujant imatge...</p>
+              ) : previewUrl ? (
+                <img 
+                  src={previewUrl} 
+                  alt="Previsualització" 
+                  style={styles.previewImageDesktop} 
+                />
+              ) : (
+                <>
+                  <span style={styles.dragDropIcon}>🐾</span>
+                  <p style={styles.dragDropText}>Arrossega una imatge</p>
+                  <p style={styles.dragDropSubtext}>o fes clic per seleccionar</p>
+                  <p style={styles.dragDropSmallText}>JPG, PNG, GIF (max 5MB)</p>
+                </>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              style={{ display: 'none' }}
+            />
+          </div>
+
+          <button 
+            style={{ ...styles.button, maxWidth: '100%' }} 
+            onClick={handleSubmit} 
+            disabled={loading || pujantImatge}
+            onMouseEnter={(e) => {
+              if (!loading && !pujantImatge) {
+                e.currentTarget.style.background = '#055523';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#06682D';
+            }}
+          >
+            {loading ? 'Creant...' : 'Crear Anuncio'}
+          </button>
         </div>
 
-        <button 
-          style={{ ...styles.button, maxWidth: '100%' }} 
-          onClick={handleSubmit} 
-          disabled={loading || pujantImatge}
-          onMouseEnter={(e) => {
-            if (!loading && !pujantImatge) {
-              e.currentTarget.style.background = '#055523';
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = '#06682D';
-          }}
-        >
-          {loading ? 'Creant...' : 'Crear Anuncio'}
-        </button>
-      </div>
-
-      {/* Secció dreta: Mapa (40%) - Ara amb ample alineat */}
-      <div style={styles.mapSection}>
-        <h3 style={{ ...styles.sectionTitle, marginBottom: '10px' }}>On s'ha perdut?</h3>
-        <MapContainer 
-          center={[latitud, longitud]} 
-          zoom={13} 
-          style={styles.desktopMap}
-        >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <LocationSelector lat={latitud} lng={longitud} setLat={setLatitud} setLng={setLongitud} />
-        </MapContainer>
-        <p style={styles.mapHint}>
-          💡 Fes clic al mapa per canviar la ubicació
-        </p>
+        {/* Secció dreta: Mapa */}
+        <div style={styles.mapSection}>
+          <h3 style={{ ...styles.sectionTitle, marginBottom: '10px' }}>On s'ha perdut?</h3>
+          
+          {/* Mostrar ubicació textual */}
+          {obtenintUbicacio && (
+            <p style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>⏳ Obtenint ubicació...</p>
+          )}
+          {!obtenintUbicacio && (ciutat || provincia) && (
+            <p style={{ fontSize: '12px', color: '#06682D', marginBottom: '8px' }}>
+              📍 {provincia && ciutat ? `${provincia} - ${ciutat}` : ciutat || provincia}
+            </p>
+          )}
+          
+          <MapContainer 
+            center={[latitud, longitud]} 
+            zoom={13} 
+            style={desktopMapStyle}
+          >
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <LocationSelector 
+              lat={latitud} 
+              lng={longitud} 
+              setLat={setLatitud} 
+              setLng={setLongitud} 
+              onLocationChange={handleLocationChange}
+            />
+          </MapContainer>
+          <p style={styles.mapHint}>
+            💡 Fes clic al mapa per canviar la ubicació
+          </p>
+        </div>
       </div>
     </div>
-  </div>
-);
-}
+  );
+};
 
 export default CrearAnuncioPage;

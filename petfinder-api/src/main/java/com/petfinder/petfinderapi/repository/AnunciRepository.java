@@ -10,4 +10,7 @@ public interface AnunciRepository extends JpaRepository<Anunci, Long> {
     List<Anunci> findByMascota_MascotaId(Long mascotaId);
 
     List<Anunci> findByEstat_EstatId(Long estatId);
+
+    List<Anunci> findByMascota_Usuari_UsuariId(Long usuariId);
+
 }

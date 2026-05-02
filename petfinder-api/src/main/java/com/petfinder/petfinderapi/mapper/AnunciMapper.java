@@ -31,6 +31,8 @@ public class AnunciMapper {
         dto.setRaca(anunci.getMascota().getRaca());
         dto.setNomMascota(anunci.getMascota().getNom());
         dto.setEspecie(anunci.getMascota().getEspecie().getNom());
+        dto.setCiutat(anunci.getCiutat());
+        dto.setProvincia(anunci.getProvincia());
 
         if (anunci.getMascota().getImatges() != null && !anunci.getMascota().getImatges().isEmpty()) {
             dto.setImatgeUrl(anunci.getMascota().getImatges().get(0).getUrl());

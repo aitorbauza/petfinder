@@ -11,10 +11,16 @@ export const crearAnuncio = (usuariId: number, anuncioData: {  // Dades necessà
   longitud: number;
   estatId: number;
   imatgeUrl: string | null;
+  ciutat: string;
+  provincia: string;
 }) => {
   return axios.post(`${API_URL}/crear?usuariId=${usuariId}`, anuncioData);
 };
 
 export const obtenerAnuncios = () => {
   return axios.get(`${API_URL}/obtenir`);
+};
+
+export const obtenirAnuncisPropis = (usuariId: number) => {
+  return axios.get(`${API_URL}/meus?usuariId=${usuariId}`);
 };

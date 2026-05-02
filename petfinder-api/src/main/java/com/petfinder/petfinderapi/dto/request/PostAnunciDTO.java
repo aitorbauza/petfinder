@@ -8,13 +8,15 @@ import lombok.*;
 @AllArgsConstructor
 public class PostAnunciDTO {
 
-    private Long mascotaId;       // Puede ser null si es nueva
-    private String nomMascota;    // Nombre de la mascota (si es nueva)
-    private Long especieId;       // Ej: "Gos", "Gat"
-    private String raca;          // Raza de la mascota
-    private String descripcio;    // Descripción
+    private Long mascotaId;
+    private String nomMascota;
+    private Long especieId;
+    private String raca;
+    private String descripcio;
     private Long estatId;         // Perdida/Trobada
     private Double latitud;
     private Double longitud;
     private String imatgeUrl;
+    private String ciutat;
+    private String provincia;
 }

@@ -14,4 +14,6 @@ public class GetAnunciDTO {
     private Double longitud;
     private LocalDateTime data;
     private String imatgeUrl;
+    private String ciutat;
+    private String provincia;
 }
