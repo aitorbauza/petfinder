@@ -44,4 +44,39 @@ public class AnunciController {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
+
+    @GetMapping("/{anunciId}")
+    public ResponseEntity<?> obtenirAnunciPerId(@PathVariable Long anunciId) {
+        try {
+            GetAnunciDTO anunci = anunciService.obtenirAnunciPerId(anunciId);
+            return ResponseEntity.ok(anunci);
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{anunciId}")
+    public ResponseEntity<?> actualitzarAnunci(
+            @PathVariable Long anunciId,
+            @RequestBody PostAnunciDTO dto,
+            @RequestParam Long usuariId) {
+        try {
+            anunciService.actualitzarAnunci(anunciId, dto, usuariId);
+            return ResponseEntity.ok(Map.of("message", "Anunci actualitzat correctament"));
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{anunciId}")
+    public ResponseEntity<?> eliminarAnunci(
+            @PathVariable Long anunciId,
+            @RequestParam Long usuariId) {
+        try {
+            anunciService.eliminarAnunci(anunciId, usuariId);
+            return ResponseEntity.ok(Map.of("message", "Anunci eliminat correctament"));
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
+        }
+    }
 }

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
-import { obtenirAnuncisPropis } from '../services/anuncioService';
+import { obtenirAnuncisPropis, eliminarAnunci } from '../services/anuncioService';
 import Header from '../components/Header';
 import { styles } from '../styles/misAnunciosStyles';
 
@@ -29,6 +29,8 @@ const MisAnunciosPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -55,6 +57,23 @@ const MisAnunciosPage: React.FC = () => {
       console.error('Error carregant els teus anuncis:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (anunciId: number) => {
+    if (!user?.usuariId) return;
+    
+    setDeleting(true);
+    try {
+      await eliminarAnunci(anunciId, user.usuariId);
+      // Eliminar l'anunci de la llista local
+      setAnuncios(anuncios.filter(a => a.id !== anunciId));
+      setShowDeleteConfirm(null);
+    } catch (error) {
+      console.error('Error eliminant anunci:', error);
+      alert('Error eliminant l\'anunci');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -103,8 +122,8 @@ const MisAnunciosPage: React.FC = () => {
     overflow: 'hidden',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
     transition: 'transform 0.2s, box-shadow 0.2s',
-    cursor: 'pointer',
     height: '100%',
+    position: 'relative',
   };
 
   const imageContainerStyle: React.CSSProperties = {
@@ -112,12 +131,55 @@ const MisAnunciosPage: React.FC = () => {
     height: '160px',
     overflow: 'hidden',
     backgroundColor: '#f5f5f5',
+    position: 'relative',
   };
 
   const imageStyle: React.CSSProperties = {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
+  };
+
+  // 🔥 Botons circulars (overlay a la imatge)
+  const actionsOverlayStyle: React.CSSProperties = {
+    position: 'absolute',
+    bottom: '10px',
+    right: '10px',
+    display: 'flex',
+    gap: '8px',
+    zIndex: 10,
+  };
+
+  const editButtonStyle: React.CSSProperties = {
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    backgroundColor: '#06682D',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    border: '2px solid #fff',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+    transition: 'transform 0.2s',
+    fontSize: '18px',
+    color: '#fff',
+  };
+
+  const deleteButtonStyle: React.CSSProperties = {
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    backgroundColor: '#e53935',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    border: '2px solid #fff',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+    transition: 'transform 0.2s',
+    fontSize: '18px',
+    color: '#fff',
   };
 
   const contentStyle: React.CSSProperties = {
@@ -203,6 +265,28 @@ const MisAnunciosPage: React.FC = () => {
     color: '#999',
   };
 
+  // Modal de confirmació
+  const modalOverlayStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  };
+
+  const modalContentStyle: React.CSSProperties = {
+    backgroundColor: '#fff',
+    padding: '30px',
+    borderRadius: '16px',
+    maxWidth: '400px',
+    textAlign: 'center',
+  };
+
   if (loading) {
     return (
       <div style={{ ...styles.container, justifyContent: 'center', alignItems: 'center' }}>
@@ -244,19 +328,7 @@ const MisAnunciosPage: React.FC = () => {
           <>
             <div style={cardsGridStyle}>
               {currentAnuncios.map((anuncio) => (
-                <div
-                  key={anuncio.id}
-                  style={cardStyle}
-                  onClick={() => navigate(`/anunci/${anuncio.id}`)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.12)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
-                  }}
-                >
+                <div key={anuncio.id} style={cardStyle}>
                   <div style={imageContainerStyle}>
                     <img
                       src={getImatgeUrl(anuncio.imatgeUrl) || placeholderImageUrl}
@@ -266,6 +338,33 @@ const MisAnunciosPage: React.FC = () => {
                         (e.target as HTMLImageElement).src = placeholderImageUrl;
                       }}
                     />
+                    {/* Botons circulars overlay */}
+                    <div style={actionsOverlayStyle}>
+                      <div
+                        style={editButtonStyle}
+                        onClick={() => navigate(`/editar-anunci/${anuncio.id}`)}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                      >
+                        ✏️
+                      </div>
+                      <div
+                        style={deleteButtonStyle}
+                        onClick={() => setShowDeleteConfirm(anuncio.id)}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                      >
+                        🗑️
+                      </div>
+                    </div>
                   </div>
 
                   <div style={contentStyle}>
@@ -310,6 +409,31 @@ const MisAnunciosPage: React.FC = () => {
           </>
         )}
       </div>
+
+      {/* Modal de confirmació d'eliminació */}
+      {showDeleteConfirm !== null && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            <h3>⚠️ Eliminar anunci</h3>
+            <p>Estàs segur que vols eliminar aquest anunci? Aquesta acció no es pot desfer.</p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
+              <button 
+                onClick={() => handleDelete(showDeleteConfirm)} 
+                disabled={deleting}
+                style={{ padding: '10px 20px', backgroundColor: '#e53935', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+              >
+                {deleting ? 'Eliminant...' : 'Sí, eliminar'}
+              </button>
+              <button 
+                onClick={() => setShowDeleteConfirm(null)} 
+                style={{ padding: '10px 20px', backgroundColor: '#ccc', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+              >
+                Cancel·lar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

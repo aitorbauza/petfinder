@@ -31,14 +31,14 @@ public class AnunciMapper {
         dto.setRaca(anunci.getMascota().getRaca());
         dto.setNomMascota(anunci.getMascota().getNom());
         dto.setEspecie(anunci.getMascota().getEspecie().getNom());
+        dto.setEspecieId(anunci.getMascota().getEspecie().getEspecieId());
         dto.setCiutat(anunci.getCiutat());
         dto.setProvincia(anunci.getProvincia());
+        dto.setDescripcio(anunci.getMascota().getDescripcio());
 
         if (anunci.getMascota().getImatges() != null && !anunci.getMascota().getImatges().isEmpty()) {
             dto.setImatgeUrl(anunci.getMascota().getImatges().get(0).getUrl());
-        } else {
-            dto.setImatgeUrl(null);  // O una URL per defecte: "/uploads/default-pet.png"
-        }
+        } // Si la imatge es null, en el front s'afegirà una imatge per defecte
 
         return dto;
     }

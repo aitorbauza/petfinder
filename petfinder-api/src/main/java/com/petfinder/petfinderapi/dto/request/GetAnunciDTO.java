@@ -6,13 +6,15 @@ import java.time.LocalDateTime;
 @Data
 public class GetAnunciDTO {
     private Long id;
-    private String estat;
-    private String raca;
-    private String nomMascota;
-    private String especie;
     private Double latitud;
     private Double longitud;
     private LocalDateTime data;
+    private String estat;
+    private String nomMascota;
+    private String especie;
+    private Long especieId;
+    private String raca;
+    private String descripcio;
     private String imatgeUrl;
     private String ciutat;
     private String provincia;

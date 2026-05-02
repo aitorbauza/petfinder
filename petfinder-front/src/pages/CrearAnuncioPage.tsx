@@ -240,6 +240,12 @@ const CrearAnuncioPage: React.FC = () => {
     }
   };
 
+  const mobileMapStyle: React.CSSProperties = {
+    width: '100%',
+    height: '40vh',
+    borderRadius: '12px',
+  };
+
   // Layout mòbil
   if (isMobile) {
     return (
@@ -355,12 +361,6 @@ const CrearAnuncioPage: React.FC = () => {
   const desktopMapStyle: React.CSSProperties = {
     height: '450px',
     width: '100%',
-    borderRadius: '12px',
-  };
-
-  const mobileMapStyle: React.CSSProperties = {
-    width: '100%',
-    height: '40vh',
     borderRadius: '12px',
   };
 
