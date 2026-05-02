@@ -21,7 +21,7 @@ public class FileStorageService {
     @Value("${app.upload.perfils:uploads/perfils/}")
     private String perfilsDir;
 
-    public String  storeMascotaImage(MultipartFile file) throws IOException {
+    public String storeMascotaImage(MultipartFile file) throws IOException {
         return storeFile(file, mascotesDir, "mascotes/");
     }
 
@@ -52,5 +52,32 @@ public class FileStorageService {
 
         // Retornar URL relativa
         return "/uploads/" + urlPrefix + fileName;
+    }
+
+    public void deleteFile(String fileUrl) throws IOException {
+        if (fileUrl == null || fileUrl.isEmpty()) {
+            return;
+        }
+
+        // Extreure el nom del fitxer de la URL
+        // Exemple: /uploads/perfils/abc123.jpg -> perfils/abc123.jpg
+        String relativePath = fileUrl.replace("/uploads/", "");
+
+        // Determinar quin directori utilitzar
+        Path filePath;
+        if (relativePath.startsWith("mascotes/")) {
+            filePath = Paths.get(mascotesDir, relativePath.replace("mascotes/", ""));
+        } else if (relativePath.startsWith("perfils/")) {
+            filePath = Paths.get(perfilsDir, relativePath.replace("perfils/", ""));
+        } else {
+            // Fallback per a compatibilitat
+            filePath = Paths.get("uploads", relativePath);
+        }
+
+        // Eliminar el fitxer si existeix
+        if (Files.exists(filePath)) {
+            Files.delete(filePath);
+            System.out.println("✅ Fitxer eliminat: " + filePath.toAbsolutePath());
+        }
     }
 }

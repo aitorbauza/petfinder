@@ -17,13 +17,4 @@ export const styles: { [key: string]: CSSProperties } = {
     fontWeight: 'bold',
     cursor: 'pointer',
   },
-  button: {
-    backgroundColor: '#ffffff',
-    color: '#06682D',
-    border: 'none',
-    padding: '8px 16px',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-  },
 };

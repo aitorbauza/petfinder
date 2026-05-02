@@ -5,15 +5,18 @@ import com.petfinder.petfinderapi.model.Usuari;
 import com.petfinder.petfinderapi.repository.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UsuariService {
 
     private final UsuariRepository usuariRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final FileStorageService fileStorageService;
 
-    public UsuariService(UsuariRepository usuariRepository) {
+    public UsuariService(UsuariRepository usuariRepository, FileStorageService fileStorageService) {
         this.usuariRepository = usuariRepository;
+        this.fileStorageService = fileStorageService;
         this.passwordEncoder =  new BCryptPasswordEncoder();
     }
 
@@ -55,4 +58,45 @@ public class UsuariService {
         usuari.setImatgeUrl(imatgeUrl);
         return usuariRepository.save(usuari);
     }
+
+    @Transactional
+    public Usuari eliminarImatgePerfil(Long usuariId) throws Exception {
+        Usuari usuari = usuariRepository.findById(usuariId)
+                .orElseThrow(() -> new Exception("Usuari no trobat"));
+
+        // Eliminar el fitxer físic si existeix
+        if (usuari.getImatgeUrl() != null && !usuari.getImatgeUrl().isEmpty()) {
+            try {
+                fileStorageService.deleteFile(usuari.getImatgeUrl());
+            } catch (Exception e) {
+                System.err.println("Error eliminant fitxer: " + e.getMessage());
+                // No llencem excepció, només log
+            }
+        }
+
+        // Posar la URL a null a la BD
+        usuari.setImatgeUrl(null);
+        return usuariRepository.save(usuari);
+    }
+
+    public Usuari actualitzarUsuari(Long usuariId, String nom, String telefon) throws Exception {
+        Usuari usuari = usuariRepository.findById(usuariId)
+                .orElseThrow(() -> new Exception("Usuari no trobat"));
+
+        if (telefon != null && !telefon.isEmpty()) {
+            // Validar que el telèfon no estigui en ús per un altre usuari
+            java.util.Optional<Usuari> existingUser = usuariRepository.findByTelefon(telefon);
+            if (existingUser.isPresent() && !existingUser.get().getUsuariId().equals(usuariId)) {
+                throw new Exception("El telèfon ja està registrat per un altre usuari");
+            }
+            usuari.setTelefon(telefon);
+        }
+
+        if (nom != null && !nom.isEmpty()) {
+            usuari.setNom(nom);
+        }
+
+        return usuariRepository.save(usuari);
+    }
+
 }

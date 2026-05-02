@@ -23,11 +23,20 @@ const Header: React.FC<HeaderProps> = ({ style }) => {
     navigate('/perfil');
   };
 
-  // Obtenir la URL de la imatge de perfil
   const getImatgePerfilUrl = () => {
     if (!user?.imatgeUrl) return null;
     if (user.imatgeUrl.startsWith('http')) return user.imatgeUrl;
     return `${API_URL}${user.imatgeUrl}`;
+  };
+
+  const avatarContainerStyle: React.CSSProperties = {
+    cursor: 'pointer',
+    transition: 'transform 0.2s ease, opacity 0.2s ease',
+  };
+
+  const avatarContainerHoverStyle: React.CSSProperties = {
+    transform: 'scale(1.05)',
+    opacity: 0.85,
   };
 
   const avatarStyle: React.CSSProperties = {
@@ -35,7 +44,6 @@ const Header: React.FC<HeaderProps> = ({ style }) => {
     height: '40px',
     borderRadius: '50%',
     objectFit: 'cover',
-    cursor: 'pointer',
     border: '2px solid #fff',
     boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
   };
@@ -48,7 +56,6 @@ const Header: React.FC<HeaderProps> = ({ style }) => {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    cursor: 'pointer',
     color: '#fff',
     fontWeight: 'bold',
     fontSize: '18px',
@@ -60,9 +67,18 @@ const Header: React.FC<HeaderProps> = ({ style }) => {
     <div style={{ ...styles.header, ...style }}>
       <div style={styles.title} onClick={() => navigate('/mapa')}>PETFINDER</div>
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-        {/* Botó de perfil circular */}
         {user && (
-          <div onClick={handleProfile}>
+          <div
+            onClick={handleProfile}
+            style={avatarContainerStyle}
+            onMouseEnter={(e) => {
+              Object.assign(e.currentTarget.style, avatarContainerHoverStyle);
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = '';
+              e.currentTarget.style.opacity = '';
+            }}
+          >
             {getImatgePerfilUrl() ? (
               <img 
                 src={getImatgePerfilUrl()} 
@@ -84,7 +100,6 @@ const Header: React.FC<HeaderProps> = ({ style }) => {
             </div>
           </div>
         )}
-        <button style={styles.button} onClick={handleLogout}>Logout</button>
       </div>
     </div>
   );

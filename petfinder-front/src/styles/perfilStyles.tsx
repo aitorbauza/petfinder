@@ -1,0 +1,246 @@
+import type { CSSProperties } from 'react';
+
+export const styles: { [key: string]: CSSProperties } = {
+  container: {
+    minHeight: '100vh',
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b8d0b8' stroke-width='0.5'%3E%3Cpath d='M12 2L15 7H9L12 2Z'/%3E%3Cpath d='M5 15L2 12L5 9L8 12L5 15Z'/%3E%3Cpath d='M19 15L22 12L19 9L16 12L19 15Z'/%3E%3C/svg%3E")`,
+    backgroundRepeat: 'repeat',
+    backgroundSize: '40px',
+    backgroundColor: '#e8f0e8',   
+  },
+  
+  content: {
+    flex: 1,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '30px 20px',
+  },
+  
+  cardDesktop: {
+    maxWidth: '550px',
+    width: '100%',
+    backgroundColor: '#ffffff',
+    borderRadius: '24px',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+    overflow: 'hidden',
+    padding: '40px 30px',
+  },
+  
+  cardMobile: {
+    maxWidth: '100%',
+    width: '100%',
+    backgroundColor: '#ffffff',
+    borderRadius: '20px',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+    overflow: 'hidden',
+    padding: '30px 20px',
+  },
+  
+  infoContainer: {
+    marginBottom: '32px',
+  },
+  
+  // 🔥 Alineació a l'esquerra per a les files d'informació
+  infoRow: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '16px',
+    padding: '12px 0',
+    borderBottom: '1px solid #eee',
+    textAlign: 'left' as const,
+  },
+  
+  infoIcon: {
+    fontSize: '22px',
+    minWidth: '32px',
+    textAlign: 'center' as const,
+  },
+  
+  infoLabel: {
+    fontSize: '12px',
+    fontWeight: 500,
+    color: '#999',
+    margin: 0,
+    marginBottom: '4px',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.5px',
+    textAlign: 'left' as const,
+  },
+  
+  infoValue: {
+    fontSize: '16px',
+    fontWeight: 500,
+    color: '#333',
+    margin: 0,
+    textAlign: 'left' as const,
+  },
+  
+  inputGroup: {
+    marginBottom: '24px',
+    width: '100%',
+    textAlign: 'left' as const,
+  },
+  
+  readonlyGroup: {
+    marginBottom: '24px',
+    width: '100%',
+  },
+  
+  // 🔥 Labels alineats a l'esquerra
+  label: {
+    display: 'block',
+    fontSize: '12px',
+    fontWeight: 500,
+    color: '#999',
+    marginBottom: '8px',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.5px',
+    textAlign: 'left' as const,
+  },
+  
+  input: {
+    width: '100%',
+    padding: '12px 14px',
+    borderRadius: '12px',
+    border: '1px solid #e0e0e0',
+    fontSize: '16px',
+    backgroundColor: '#fff',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+    outline: 'none',
+    boxSizing: 'border-box' as const,
+    textAlign: 'left' as const,
+  },
+  
+  readonlyValue: {
+    fontSize: '16px',
+    fontWeight: 500,
+    color: '#333',
+    padding: '12px 0',
+    borderBottom: '1px solid #e0e0e0',
+    textAlign: 'left' as const,
+  },
+  
+  hint: {
+    fontSize: '11px',
+    color: '#999',
+    marginTop: '6px',
+    marginBottom: 0,
+    textAlign: 'left' as const,
+  },
+  
+  actionsContainer: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '12px',
+    marginTop: '20px',
+  },
+  
+  editButton: {
+    width: '100%',
+    padding: '14px',
+    borderRadius: '40px',
+    border: 'none',
+    background: '#2196F3',
+    color: '#fff',
+    fontSize: '16px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+  },
+  
+  saveButton: {
+    width: '100%',
+    padding: '14px',
+    borderRadius: '40px',
+    border: 'none',
+    background: '#06682D',
+    color: '#fff',
+    fontSize: '16px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+  },
+  
+  cancelButton: {
+    width: '100%',
+    padding: '14px',
+    borderRadius: '40px',
+    border: '1px solid #ccc',
+    background: '#fff',
+    color: '#666',
+    fontSize: '16px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+  },
+  
+  myAnuncisButton: {
+    width: '100%',
+    padding: '14px',
+    borderRadius: '40px',
+    border: 'none',
+    background: '#06682D',
+    color: '#fff',
+    fontSize: '16px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+  },
+  
+  logoutButton: {
+    width: '100%',
+    padding: '14px',
+    borderRadius: '40px',
+    border: 'none',
+    background: '#e53935',
+    color: '#fff',
+    fontSize: '16px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+  },
+  
+  errorMessage: {
+    backgroundColor: '#ffebee',
+    color: '#c62828',
+    padding: '12px',
+    borderRadius: '12px',
+    fontSize: '14px',
+    textAlign: 'center' as const,
+    marginBottom: '20px',
+  },
+  
+  successMessage: {
+    backgroundColor: '#e8f5e9',
+    color: '#2e7d32',
+    padding: '12px',
+    borderRadius: '12px',
+    fontSize: '14px',
+    textAlign: 'center' as const,
+    marginBottom: '20px',
+  },
+};

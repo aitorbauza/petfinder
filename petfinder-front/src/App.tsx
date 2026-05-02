@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import MapaPage from './pages/MapaPage';
 import CrearAnuncioPage from './pages/CrearAnuncioPage';
+import PerfilPage from './pages/PerfilPage';
 
 function App() {
   return (
@@ -20,6 +21,9 @@ function App() {
           {/* App */}
           <Route path="/mapa" element={<MapaPage />} />
           <Route path="/crear" element={<CrearAnuncioPage />} />
+
+          <Route path="/perfil" element={<PerfilPage />} />
+          {/* <Route path="/mis-anuncios" element={<MisAnunciosPage />} */ /*/> Per crear després */}
         </Routes>
       </BrowserRouter>
     </UserProvider>

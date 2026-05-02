@@ -53,4 +53,36 @@ public class UsuariController {
             return ResponseEntity.status(500).body(Map.of("error", "Error pujant imatge de perfil: " + e.getMessage()));
         }
     }
+
+    @PutMapping("/{usuariId}")
+    public ResponseEntity<?> actualitzarUsuari(
+            @PathVariable Long usuariId,
+            @RequestBody Map<String, String> updates) {
+        try {
+            String nom = updates.get("nom");
+            String telefon = updates.get("telefon");
+
+            Usuari usuari = usuariService.actualitzarUsuari(usuariId, nom, telefon);
+            return ResponseEntity.ok(usuari);
+        } catch (Exception e) {
+            if (e.getMessage().contains("El telèfon ja està registrat")) {
+                return ResponseEntity.status(409).body(Map.of("error", e.getMessage()));
+            }
+            return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{usuariId}/imatge-perfil")
+    public ResponseEntity<?> eliminarImatgePerfil(@PathVariable Long usuariId) {
+        try {
+            Usuari usuari = usuariService.eliminarImatgePerfil(usuariId);
+            return ResponseEntity.ok(Map.of(
+                    "message", "Imatge eliminada correctament",
+                    "usuari", usuari
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Error eliminant la imatge: " + e.getMessage()));
+        }
+    }
 }
