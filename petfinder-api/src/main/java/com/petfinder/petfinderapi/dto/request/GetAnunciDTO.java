@@ -18,4 +18,7 @@ public class GetAnunciDTO {
     private String imatgeUrl;
     private String ciutat;
     private String provincia;
+    private Long usuariId;
+    private String usuariNom;
+    private String usuariTelefon;
 }

@@ -49,6 +49,8 @@ public class AnunciController {
     public ResponseEntity<?> obtenirAnunciPerId(@PathVariable Long anunciId) {
         try {
             GetAnunciDTO anunci = anunciService.obtenirAnunciPerId(anunciId);
+            System.out.println("📢 Enviant anunci al frontend: " + anunci);
+            System.out.println("👤 usuariId: " + anunci.getUsuariId());
             return ResponseEntity.ok(anunci);
         } catch (Exception e) {
             return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));

@@ -3,7 +3,7 @@ package com.petfinder.petfinderapi.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.Set;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -22,8 +22,8 @@ public class Conversa {
             joinColumns = @JoinColumn(name = "id_conversa"),
             inverseJoinColumns = @JoinColumn(name = "id_usuari")
     )
-    private Set<Usuari> usuaris;
+    private List<Usuari> usuaris = new ArrayList<>();
 
-    @OneToMany(mappedBy = "conversa", cascade = CascadeType.ALL)
-    private List<Missatge> missatges;
+    @OneToMany(mappedBy = "conversa", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Missatge> missatges = new ArrayList<>();
 }

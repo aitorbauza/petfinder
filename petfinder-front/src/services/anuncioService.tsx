@@ -31,6 +31,9 @@ export interface GetAnunciDTO {
   imatgeUrl: string | null;
   ciutat: string;
   provincia: string;
+  usuariId: number;       
+  usuariNom: string;       
+  usuariTelefon: string;   
 }
 
 // Mètodes

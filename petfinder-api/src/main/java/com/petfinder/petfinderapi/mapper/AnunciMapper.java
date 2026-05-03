@@ -35,6 +35,9 @@ public class AnunciMapper {
         dto.setCiutat(anunci.getCiutat());
         dto.setProvincia(anunci.getProvincia());
         dto.setDescripcio(anunci.getMascota().getDescripcio());
+        dto.setUsuariId(anunci.getMascota().getUsuari().getUsuariId());
+        dto.setUsuariNom(anunci.getMascota().getUsuari().getNom());
+        dto.setUsuariTelefon(anunci.getMascota().getUsuari().getTelefon());
 
         if (anunci.getMascota().getImatges() != null && !anunci.getMascota().getImatges().isEmpty()) {
             dto.setImatgeUrl(anunci.getMascota().getImatges().get(0).getUrl());

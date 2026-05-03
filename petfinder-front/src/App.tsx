@@ -24,7 +24,6 @@ function App() {
           {/* App */}
           <Route path="/mapa" element={<MapaPage />} />
           <Route path="/crear" element={<CrearAnuncioPage />} />
-
           <Route path="/perfil" element={<PerfilPage />} />
           <Route path="/mis-anuncios" element={<MisAnunciosPage />} />
           <Route path="/editar-anunci/:id" element={<EditarAnuncioPage />} />

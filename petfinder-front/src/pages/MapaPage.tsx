@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useContext, useRef, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { obtenerAnuncios } from '../services/anuncioService';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { styles, mobileStyles } from '../styles/mapaStyles';
 import Header from '../components/Header';
+import ChatFloatingButton from '../components/ChatFloatingButton';
+import { UserContext } from '../context/UserContext';
 
 // Configuración iconos Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -45,26 +47,22 @@ interface MarkerGroup {
 }
 
 const MapaPage: React.FC = () => {
+  const { user } = useContext(UserContext);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const hasProcessedState = useRef(false);
+  
   const [anuncios, setAnuncios] = useState<Anuncio[]>([]);
-  const [markerGroups, setMarkerGroups] = useState<MarkerGroup[]>([]);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [selectedAnuncio, setSelectedAnuncio] = useState<Anuncio | null>(null);
   const [showPopup, setShowPopup] = useState(false);
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await obtenerAnuncios();
-        setAnuncios(res.data);
-      } catch (error) {
-        console.error('Error cargando anuncios:', error);
-      }
-    };
-    fetchData();
-  }, []);
+  const [openChatConversaId, setOpenChatConversaId] = useState<number | null>(null);
+  const [openChatDestinatariId, setOpenChatDestinatariId] = useState<number | null>(null);
+  const [openChatAnunciId, setOpenChatAnunciId] = useState<number | null>(null);
 
-  useEffect(() => {
+  // 🔥 Usar useMemo per evitar cascading renders
+  const markerGroups = useMemo(() => {
     const groups = new Map<string, MarkerGroup>();
     
     anuncios.forEach(anuncio => {
@@ -80,8 +78,42 @@ const MapaPage: React.FC = () => {
       }
     });
     
-    setMarkerGroups(Array.from(groups.values()));
+    return Array.from(groups.values());
   }, [anuncios]);
+
+  // Efecte per rebre l'estat de navegació del xat
+  useEffect(() => {
+    if (hasProcessedState.current) return;
+    
+    if (location.state && location.state.openChat && location.state.destinatariId) {
+      hasProcessedState.current = true;
+      
+      setTimeout(() => {
+        setOpenChatDestinatariId(location.state.destinatariId);
+        setOpenChatAnunciId(location.state.anunciId || null);
+        navigate('/mapa', { replace: true, state: {} });
+      }, 0);
+    }
+  }, [location, navigate]);
+
+  useEffect(() => {
+    return () => {
+      hasProcessedState.current = false;
+    };
+  }, []);
+
+  // Carregar anuncis
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await obtenerAnuncios();
+        setAnuncios(res.data);
+      } catch (error) {
+        console.error('Error cargando anuncios:', error);
+      }
+    };
+    fetchData();
+  }, []);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -159,13 +191,6 @@ const MapaPage: React.FC = () => {
     return styles.cardImage as React.CSSProperties;
   };
 
-  const getFabStyle = (): React.CSSProperties => {
-    if (isMobile) {
-      return { ...styles.fab, ...mobileStyles.fab } as React.CSSProperties;
-    }
-    return styles.fab as React.CSSProperties;
-  };
-
   const detailButtonStyle: React.CSSProperties = {
     marginTop: '10px',
     padding: '6px 12px',
@@ -183,7 +208,6 @@ const MapaPage: React.FC = () => {
     display: 'inline-block',
   };
 
-  // 🔥 Popup flotant amb imatge més ampla (300px d'alt)
   const floatingPopupStyle: React.CSSProperties = {
     position: 'fixed',
     top: '50%',
@@ -261,6 +285,7 @@ const MapaPage: React.FC = () => {
       <Header />
 
       <div style={getMainContentStyle()}>
+        {/* PANELL ESQUERRE: LLISTA D'ANUNCIS */}
         <div style={getLeftPanelStyle()}>
           <div style={getCardsGridStyle()}>
             {anuncios.map((anuncio) => (
@@ -311,7 +336,7 @@ const MapaPage: React.FC = () => {
                         e.currentTarget.style.background = '#06682D';
                       }}
                     >
-                      Veure detall
+                      Veure detall →
                     </button>
                   </div>
                 </div>
@@ -326,7 +351,9 @@ const MapaPage: React.FC = () => {
           )}
         </div>
 
+        {/* PANELL DRET: MAPA */}
         <div style={getMapPanelStyle()}>
+          {/* Botó "Crear anunci" */}
           <button
             style={{
               position: 'absolute',
@@ -354,9 +381,10 @@ const MapaPage: React.FC = () => {
               e.currentTarget.style.background = '#06682D';
             }}
           >
-            Crear anunci
+            + Crear anunci
           </button>
 
+          {/* MAPCONTAINER */}
           <MapContainer
             center={[41.3851, 2.1734]}
             zoom={13}
@@ -442,23 +470,23 @@ const MapaPage: React.FC = () => {
             ))}
           </MapContainer>
 
-          <button
-            style={getFabStyle()}
-            onClick={() => navigate('/crear')}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.background = '#055523';
+          {/* 🔥 Botó flotant del xat - DINS del mateix contenidor que el mapa */}
+          <ChatFloatingButton 
+            usuariId={user?.usuariId || 0}
+            openConversaId={openChatConversaId}
+            openDestinatariId={openChatDestinatariId}
+            anunciId={openChatAnunciId}
+            isInsideMap={true}
+            onClose={() => {
+              setOpenChatConversaId(null);
+              setOpenChatDestinatariId(null);
+              setOpenChatAnunciId(null);
             }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.background = '#06682D';
-            }}
-          >
-            +
-          </button>
+          />
         </div>
       </div>
 
+      {/* Popup flotant de detall ràpid */}
       {showPopup && selectedAnuncio && (
         <div style={popupOverlayStyle} onClick={closePopup}>
           <div style={floatingPopupStyle} onClick={(e) => e.stopPropagation()}>

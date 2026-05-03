@@ -51,6 +51,9 @@ const DetallAnunciPage: React.FC = () => {
     try {
       setLoading(true);
       const response = await obtenirAnunciPerId(Number(id));
+      console.log('📢 Anunci rebut:', response.data);
+      console.log('👤 Usuari loguejat:', user?.usuariId);
+      console.log('👤 Propietari anunci:', response.data.usuariId);
       setAnunci(response.data);
     } catch (error) {
       console.error('Error carregant anunci:', error);
@@ -78,8 +81,23 @@ const DetallAnunciPage: React.FC = () => {
 
   const placeholderImageUrl = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"%3E%3Crect width="400" height="300" fill="%23e0e0e0"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="20"%3E🐾%3C/text%3E%3C/svg%3E';
 
+  // 🔥 Comparació correcta de IDs
   const isOwner = user?.usuariId === anunci?.usuariId;
-  const showChatButton = !isOwner && anunci?.usuariId !== user?.usuariId;
+  const showChatButton = !isOwner && anunci !== null;
+
+  // Funció per obrir el xat des del detall
+  const handleOpenChat = () => {
+    if (!anunci) return;
+    
+    // Navegar al mapa amb l'estat per obrir el xat
+    navigate('/mapa', { 
+      state: { 
+        openChat: true, 
+        destinatariId: anunci.usuariId,
+        anunciId: anunci.id 
+      } 
+    });
+  };
 
   if (loading) {
     return (
@@ -134,7 +152,6 @@ const DetallAnunciPage: React.FC = () => {
               <h1 style={{ ...styles.petName, ...(isMobile ? styles.petNameMobile : styles.petNameDesktop) }}>
                 {anunci.nomMascota}
               </h1>
-              {/* 🔥 Cridem la funció amb l'estat */}
               <span style={getStatusBadgeStyle(anunci.estat)}>{anunci.estat}</span>
             </div>
 
@@ -180,13 +197,11 @@ const DetallAnunciPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 🔥 Botó de contacte - cridem la funció amb isOwner=false */}
+            {/* 🔥 Botó de contacte - només si NO és el propietari */}
             {showChatButton && (
               <button
                 style={getChatButtonStyle(false)}
-                onClick={() => {
-                  alert('Funcionalitat de xat en desenvolupament');
-                }}
+                onClick={handleOpenChat}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = '#055523';
                   e.currentTarget.style.transform = 'translateY(-2px)';
