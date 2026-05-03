@@ -19,4 +19,6 @@ public class PostAnunciDTO {
     private String imatgeUrl;
     private String ciutat;
     private String provincia;
+    private Boolean teGeolocalitzacio;
+    private String microchipId;
 }

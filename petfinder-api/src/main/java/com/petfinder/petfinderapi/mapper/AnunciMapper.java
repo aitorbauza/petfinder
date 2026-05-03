@@ -38,6 +38,9 @@ public class AnunciMapper {
         dto.setUsuariId(anunci.getMascota().getUsuari().getUsuariId());
         dto.setUsuariNom(anunci.getMascota().getUsuari().getNom());
         dto.setUsuariTelefon(anunci.getMascota().getUsuari().getTelefon());
+        dto.setTeGeolocalitzacio(anunci.getMascota().getTeGeolocalitzacio());
+        dto.setMicrochipId(anunci.getMascota().getMicrochipId());
+        dto.setMascotaId(anunci.getMascota().getMascotaId());
 
         if (anunci.getMascota().getImatges() != null && !anunci.getMascota().getImatges().isEmpty()) {
             dto.setImatgeUrl(anunci.getMascota().getImatges().get(0).getUrl());

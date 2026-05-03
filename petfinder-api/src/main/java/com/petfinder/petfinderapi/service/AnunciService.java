@@ -30,6 +30,7 @@ public class AnunciService {
     private final UsuariRepository usuariRepository;
     private final ImatgeRepository imatgeRepository;
     private final FileStorageService fileStorageService;
+    private final GeolocalitzacioService geolocalitzacioService;
 
     public AnunciService(
             AnunciRepository anunciRepository,
@@ -38,7 +39,8 @@ public class AnunciService {
             EspecieRepository especieRepository,
             UsuariRepository usuariRepository,
             ImatgeRepository imatgeRepository,
-            FileStorageService fileStorageService
+            FileStorageService fileStorageService,
+            GeolocalitzacioService geolocalitzacioService
     ) {
         this.anunciRepository = anunciRepository;
         this.mascotaRepository = mascotaRepository;
@@ -47,6 +49,7 @@ public class AnunciService {
         this.usuariRepository = usuariRepository;
         this.imatgeRepository = imatgeRepository;
         this.fileStorageService = fileStorageService;
+        this.geolocalitzacioService = geolocalitzacioService;
     }
 
     @Transactional
@@ -58,6 +61,17 @@ public class AnunciService {
         Anunci anunci = construirAnunci(dto, mascota, estat);
 
         anunciRepository.save(anunci);
+
+        // 🔥 Si té geolocalització activa, guardar la ubicació inicial
+        if (mascota.getTeGeolocalitzacio() != null && mascota.getTeGeolocalitzacio()) {
+            try {
+                geolocalitzacioService.guardarUbicacio(mascota.getMascotaId(), dto.getLatitud(), dto.getLongitud());
+                log.info("📍 Ubicació inicial guardada per a mascota {} amb geolocalització", mascota.getMascotaId());
+            } catch (Exception e) {
+                log.error("Error guardant ubicació inicial per a mascota {}: {}", mascota.getMascotaId(), e.getMessage());
+            }
+        }
+
         log.info("Anunci creat per usuari {}: {}", usuariId, anunci.getAnunciId());
     }
 
@@ -86,10 +100,28 @@ public class AnunciService {
         Anunci anunci = verificarPropietatAnunci(anunciId, usuariId);
         Mascota mascota = anunci.getMascota();
 
+        // 🔥 Guardar estat anterior de geolocalització
+        boolean geolocalitzacioJaActiva = mascota.getTeGeolocalitzacio() != null && mascota.getTeGeolocalitzacio();
+        boolean geolocalitzacioNovaActiva = dto.getTeGeolocalitzacio() != null && dto.getTeGeolocalitzacio();
+
         actualitzarDadesMascota(mascota, dto);
         actualitzarImatgeMascota(mascota, dto);
 
+        // 🔥 Actualitzar geolocalització si ha canviat
+        mascota.setTeGeolocalitzacio(geolocalitzacioNovaActiva);
+        mascota.setMicrochipId(dto.getMicrochipId());
+
         mascotaRepository.save(mascota);
+
+        // 🔥 Si s'ha activat la geolocalització ara (abans no ho estava), guardar la ubicació inicial
+        if (geolocalitzacioNovaActiva && !geolocalitzacioJaActiva) {
+            try {
+                geolocalitzacioService.guardarUbicacio(mascota.getMascotaId(), dto.getLatitud(), dto.getLongitud());
+                log.info("📍 Ubicació inicial guardada per a mascota {} en edició (geolocalització activada)", mascota.getMascotaId());
+            } catch (Exception e) {
+                log.error("Error guardant ubicació inicial per a mascota {}: {}", mascota.getMascotaId(), e.getMessage());
+            }
+        }
 
         Estat estat = obtenirEstatPerId(dto.getEstatId());
         actualitzarDadesAnunci(anunci, dto, estat);
@@ -148,6 +180,8 @@ public class AnunciService {
         mascota.setEspecie(especie);
         mascota.setUsuari(usuari);
         mascota.setRaca(dto.getRaca() != null && !dto.getRaca().isEmpty() ? dto.getRaca() : RACA_PER_DEFECTE);
+        mascota.setTeGeolocalitzacio(dto.getTeGeolocalitzacio() != null ? dto.getTeGeolocalitzacio() : false);
+        mascota.setMicrochipId(dto.getMicrochipId());
         return mascota;
     }
 

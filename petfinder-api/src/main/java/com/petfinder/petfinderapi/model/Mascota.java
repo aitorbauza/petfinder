@@ -41,4 +41,10 @@ public class Mascota {
     @OneToMany(mappedBy = "mascota", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Anunci> anuncis;
+
+    @Column(name = "te_geolocalitzacio")
+    private Boolean teGeolocalitzacio = false;
+
+    @Column(name = "microchip_id", length = 50, unique = true)
+    private String microchipId;
 }

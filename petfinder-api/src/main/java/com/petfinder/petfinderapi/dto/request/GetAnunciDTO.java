@@ -1,5 +1,6 @@
 package com.petfinder.petfinderapi.dto.request;
 
+import com.petfinder.petfinderapi.dto.UbicacioTempsRealDTO;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -21,4 +22,8 @@ public class GetAnunciDTO {
     private Long usuariId;
     private String usuariNom;
     private String usuariTelefon;
+    private Boolean teGeolocalitzacio;
+    private String microchipId;
+    private UbicacioTempsRealDTO ultimaUbicacio;
+    private Long mascotaId;
 }

@@ -63,6 +63,17 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ lat, lng, setLat, s
 
 type EspecieEnumType = typeof EspecieEnum[keyof typeof EspecieEnum];
 
+/**
+ * Genera un ID de microchip simulat amb format estàndard
+ * Format: PET-XXXXXXXXXX (10 caràcters alfanumèrics)
+ */
+const generarMicrochipId = (): string => {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const padding = '0'.repeat(Math.max(0, 4 - timestamp.length));
+  return `PET-${padding}${timestamp}${random}`;
+};
+
 const CrearAnuncioPage: React.FC = () => {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
@@ -89,6 +100,10 @@ const CrearAnuncioPage: React.FC = () => {
   const [ciutat, setCiutat] = useState('');
   const [provincia, setProvincia] = useState('');
   const [obtenintUbicacio, setObtenintUbicacio] = useState(false);
+
+  // 🔥 NOUS ESTATS PER A GEOLOCALITZACIÓ SIMULADA
+  const [teGeolocalitzacio, setTeGeolocalitzacio] = useState(false);
+  const [microchipId, setMicrochipId] = useState('');
 
   useEffect(() => {
     if (!user) {
@@ -129,6 +144,16 @@ const CrearAnuncioPage: React.FC = () => {
       obtenirUbicacioPerCoordenades(latitud, longitud);
     }
   }, []);
+
+  // 🔥 Quan s'activa la geolocalització, generar microchip ID automàticament
+  const handleTeGeolocalitzacioChange = (checked: boolean) => {
+    setTeGeolocalitzacio(checked);
+    if (checked && !microchipId) {
+      setMicrochipId(generarMicrochipId());
+    } else if (!checked) {
+      setMicrochipId('');
+    }
+  };
 
   const pujarImatge = async (file: File): Promise<string | null> => {
     setPujantImatge(true);
@@ -219,7 +244,9 @@ const CrearAnuncioPage: React.FC = () => {
         estatId: Number(estatId),
         imatgeUrl: imatgeUrl || null,
         ciutat: ciutat,
-        provincia: provincia
+        provincia: provincia,
+        teGeolocalitzacio: teGeolocalitzacio,
+        microchipId: teGeolocalitzacio ? microchipId : null,
       };
       
       console.log('📤 Enviant anunci:', anunciData);
@@ -238,6 +265,44 @@ const CrearAnuncioPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Estils per als nous camps
+  const checkboxContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '16px',
+    padding: '12px',
+    backgroundColor: '#f9f9f9',
+    borderRadius: '12px',
+    border: '1px solid #e0e0e0',
+  };
+
+  const microchipContainerStyle: React.CSSProperties = {
+    marginBottom: '20px',
+    padding: '12px',
+    backgroundColor: '#e8f5e9',
+    borderRadius: '12px',
+    border: '1px solid #c8e6c9',
+  };
+
+  const microchipInputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '10px 12px',
+    backgroundColor: '#f5f5f5',
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontFamily: 'monospace',
+    color: '#333',
+  };
+
+  const hintTextStyle: React.CSSProperties = {
+    fontSize: '11px',
+    color: '#666',
+    marginTop: '6px',
+    marginBottom: 0,
   };
 
   const mobileMapStyle: React.CSSProperties = {
@@ -301,6 +366,39 @@ const CrearAnuncioPage: React.FC = () => {
             onChange={(e) => setDescripcio(e.target.value)}
           />
 
+          {/* 🔥 CHECKBOX GEOLOCALITZACIÓ */}
+          <div style={checkboxContainerStyle}>
+            <input
+              type="checkbox"
+              id="teGeolocalitzacio"
+              checked={teGeolocalitzacio}
+              onChange={(e) => handleTeGeolocalitzacioChange(e.target.checked)}
+              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+            />
+            <label htmlFor="teGeolocalitzacio" style={{ cursor: 'pointer', fontWeight: 500 }}>
+              📡 Disposa de geolocalització en temps real (microchip GPS)
+            </label>
+          </div>
+
+          {/* 🔥 MICROCHIP ID (només si té geolocalització) */}
+          {teGeolocalitzacio && (
+            <div style={microchipContainerStyle}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
+                🔢 Microchip ID
+              </label>
+              <input
+                type="text"
+                style={microchipInputStyle}
+                value={microchipId}
+                readOnly
+                disabled
+              />
+              <p style={hintTextStyle}>
+                💡 ID únic generat automàticament per al microchip simulat. Aquest ID permetrà identificar la mascota en el sistema de geolocalització.
+              </p>
+            </div>
+          )}
+
           <div style={{ width: '100%' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
               Imatge de la mascota (opcional)
@@ -328,7 +426,6 @@ const CrearAnuncioPage: React.FC = () => {
 
           <h3 style={{ marginTop: '20px', marginBottom: '10px' }}>On s'ha perdut?</h3>
           
-          {/* Mostrar ubicació textual */}
           {obtenintUbicacio && (
             <p style={{ fontSize: '12px', color: '#666' }}>⏳ Obtenint ubicació...</p>
           )}
@@ -411,6 +508,39 @@ const CrearAnuncioPage: React.FC = () => {
             onChange={(e) => setDescripcio(e.target.value)}
           />
 
+          {/* 🔥 CHECKBOX GEOLOCALITZACIÓ */}
+          <div style={checkboxContainerStyle}>
+            <input
+              type="checkbox"
+              id="teGeolocalitzacio"
+              checked={teGeolocalitzacio}
+              onChange={(e) => handleTeGeolocalitzacioChange(e.target.checked)}
+              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+            />
+            <label htmlFor="teGeolocalitzacio" style={{ cursor: 'pointer', fontWeight: 500 }}>
+              📡 Disposa de geolocalització en temps real (microchip GPS)
+            </label>
+          </div>
+
+          {/* 🔥 MICROCHIP ID (només si té geolocalització) */}
+          {teGeolocalitzacio && (
+            <div style={microchipContainerStyle}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
+                🔢 Microchip ID
+              </label>
+              <input
+                type="text"
+                style={microchipInputStyle}
+                value={microchipId}
+                readOnly
+                disabled
+              />
+              <p style={hintTextStyle}>
+                💡 ID únic generat automàticament per al microchip simulat. Aquest ID permetrà identificar la mascota en el sistema de geolocalització.
+              </p>
+            </div>
+          )}
+
           {/* Drag & Drop per a desktop */}
           <div>
             <label style={{ ...styles.label, textAlign: 'left' }}>
@@ -474,7 +604,6 @@ const CrearAnuncioPage: React.FC = () => {
         <div style={styles.mapSection}>
           <h3 style={{ ...styles.sectionTitle, marginBottom: '10px' }}>On s'ha perdut?</h3>
           
-          {/* Mostrar ubicació textual */}
           {obtenintUbicacio && (
             <p style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>⏳ Obtenint ubicació...</p>
           )}

@@ -49,7 +49,7 @@ const FiltresMapa: React.FC<FiltresMapaProps> = ({ onFilterChange, isMobile, isO
         </button>
       </div>
 
-      {/* Filtre per espècie - 3 botons per fila */}
+      {/* Filtre per espècie - 5 botons en grid de 3 columnes */}
       <div style={styles.filterSection}>
         <label style={styles.filterLabel}>Tipus d'animal</label>
         <div style={styles.optionsGrid}>
@@ -111,7 +111,7 @@ const FiltresMapa: React.FC<FiltresMapaProps> = ({ onFilterChange, isMobile, isO
         </div>
       </div>
 
-      {/* Filtre per geolocalització en temps real */}
+      {/* 🔥 Filtre per geolocalització en temps real - JA FUNCIONAL */}
       <div style={styles.filterSection}>
         <label style={styles.filterLabel}>Geolocalització en temps real</label>
         <div style={styles.checkboxContainer}>
@@ -123,11 +123,11 @@ const FiltresMapa: React.FC<FiltresMapaProps> = ({ onFilterChange, isMobile, isO
             style={styles.checkbox}
           />
           <label htmlFor="teGeolocalitzacio" style={styles.checkboxLabel}>
-            Mostrar només animals amb geolocalització activa
+            📡 Mostrar només animals amb geolocalització activa
           </label>
         </div>
         <p style={styles.hintText}>
-          ⚠️ Aquesta funcionalitat estarà disponible properament
+          💡 Els animals amb geolocalització activa es mouen en temps real al mapa
         </p>
       </div>
     </div>

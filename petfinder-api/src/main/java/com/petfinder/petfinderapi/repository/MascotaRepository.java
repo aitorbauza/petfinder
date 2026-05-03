@@ -10,4 +10,6 @@ public interface MascotaRepository extends JpaRepository<Mascota, Long> {
     List<Mascota> findByUsuari_UsuariId(Long usuariId);
 
     List<Mascota> findByEspecie_EspecieId(Long especieId);
+
+    List<Mascota> findByTeGeolocalitzacioTrue();
 }

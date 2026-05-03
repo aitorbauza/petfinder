@@ -62,6 +62,17 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ lat, lng, setLat, s
 
 type EspecieEnumType = typeof EspecieEnum[keyof typeof EspecieEnum];
 
+/**
+ * Genera un ID de microchip simulat amb format estàndard
+ * Format: PET-XXXXXXXXXX (10 caràcters alfanumèrics)
+ */
+const generarMicrochipId = (): string => {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const padding = '0'.repeat(Math.max(0, 4 - timestamp.length));
+  return `PET-${padding}${timestamp}${random}`;
+};
+
 const EditarAnuncioPage: React.FC = () => {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
@@ -84,6 +95,11 @@ const EditarAnuncioPage: React.FC = () => {
   const [imatgeUrl, setImatgeUrl] = useState<string | null>(null);
   const [ciutat, setCiutat] = useState('');
   const [provincia, setProvincia] = useState('');
+  const [mascotaId, setMascotaId] = useState<number | null>(null);
+  
+  // 🔥 NOUS ESTATS PER A GEOLOCALITZACIÓ
+  const [teGeolocalitzacio, setTeGeolocalitzacio] = useState(false);
+  const [microchipId, setMicrochipId] = useState<string | null>(null);
   
   // Image states
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -104,6 +120,9 @@ const EditarAnuncioPage: React.FC = () => {
   const [originalImatgeUrl, setOriginalImatgeUrl] = useState<string | null>(null);
   const [originalCiutat, setOriginalCiutat] = useState('');
   const [originalProvincia, setOriginalProvincia] = useState('');
+  // 🔥 Valors originals per geolocalització
+  const [originalTeGeolocalitzacio, setOriginalTeGeolocalitzacio] = useState(false);
+  const [originalMicrochipId, setOriginalMicrochipId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -138,6 +157,9 @@ const EditarAnuncioPage: React.FC = () => {
       setImatgeUrl(anunci.imatgeUrl || null);
       setCiutat(anunci.ciutat || '');
       setProvincia(anunci.provincia || '');
+      setMascotaId(anunci.mascotaId || null);
+      setTeGeolocalitzacio(anunci.teGeolocalitzacio === true);
+      setMicrochipId(anunci.microchipId || null);
       
       // Set original values for cancel
       setOriginalNom(anunci.nomMascota || '');
@@ -150,6 +172,8 @@ const EditarAnuncioPage: React.FC = () => {
       setOriginalImatgeUrl(anunci.imatgeUrl || null);
       setOriginalCiutat(anunci.ciutat || '');
       setOriginalProvincia(anunci.provincia || '');
+      setOriginalTeGeolocalitzacio(anunci.teGeolocalitzacio === true);
+      setOriginalMicrochipId(anunci.microchipId || null);
     } catch (error) {
       console.error('Error carregant anunci:', error);
       setError('No s\'ha pogut carregar l\'anunci');
@@ -179,6 +203,16 @@ const EditarAnuncioPage: React.FC = () => {
     obtenirUbicacioPerCoordenades(lat, lng);
   };
 
+  // 🔥 Manejador per activar/desactivar geolocalització
+  const handleTeGeolocalitzacioChange = (checked: boolean) => {
+    setTeGeolocalitzacio(checked);
+    if (checked && !microchipId) {
+      setMicrochipId(generarMicrochipId());
+    } else if (!checked) {
+      setMicrochipId(null);
+    }
+  };
+
   const pujarImatge = async (file: File): Promise<string | null> => {
     setPujantImatge(true);
     const formData = new FormData();
@@ -190,7 +224,7 @@ const EditarAnuncioPage: React.FC = () => {
       });
       return response.data.url;
     } catch (error) {
-      alert('Error pujant la imatge');
+      alert('Error pujant la imatge: ' + error);
       return null;
     } finally {
       setPujantImatge(false);
@@ -237,6 +271,9 @@ const EditarAnuncioPage: React.FC = () => {
     setSaving(true);
     setError('');
     
+    // 🔥 Comprovar si s'ha activat la geolocalització ara
+    const geolocalitzacioActivadaAra = teGeolocalitzacio && !originalTeGeolocalitzacio;
+    
     try {
       const anunciData = {
         nomMascota,
@@ -248,10 +285,30 @@ const EditarAnuncioPage: React.FC = () => {
         estatId: Number(estatId),
         imatgeUrl: eliminarImatgeEdit ? null : imatgeUrl,
         ciutat,
-        provincia
+        provincia,
+        // 🔥 Enviar dades de geolocalització
+        teGeolocalitzacio: teGeolocalitzacio,
+        microchipId: teGeolocalitzacio ? microchipId : null,
       };
       
       await actualitzarAnunci(Number(id), user.usuariId, anunciData);
+      
+      // 🔥 Si s'ha activat la geolocalització, guardar la ubicació inicial
+      if (geolocalitzacioActivadaAra && mascotaId) {
+        try {
+          await axios.post('http://localhost:9090/api/ubicacions/inicialitzar', null, {
+            params: {
+              mascotaId: mascotaId,
+              latitud: latitud,
+              longitud: longitud
+            }
+          });
+          console.log('📍 Ubicació inicial guardada per a la mascota:', mascotaId);
+        } catch (geoError) {
+          console.error('Error guardant ubicació inicial:', geoError);
+        }
+      }
+      
       alert('✅ Anunci actualitzat correctament!');
       navigate('/mis-anuncios');
     } catch (err) {
@@ -274,6 +331,9 @@ const EditarAnuncioPage: React.FC = () => {
     setImatgeUrl(originalImatgeUrl);
     setCiutat(originalCiutat);
     setProvincia(originalProvincia);
+    // 🔥 Restaurar valors de geolocalització
+    setTeGeolocalitzacio(originalTeGeolocalitzacio);
+    setMicrochipId(originalMicrochipId);
     
     // Clear preview
     if (previewUrl) {
@@ -292,6 +352,44 @@ const EditarAnuncioPage: React.FC = () => {
       return `http://localhost:9090${imatgeUrl}`;
     }
     return null;
+  };
+
+  // Estils per als camps de geolocalització
+  const checkboxContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '16px',
+    padding: '12px',
+    backgroundColor: '#f9f9f9',
+    borderRadius: '12px',
+    border: '1px solid #e0e0e0',
+  };
+
+  const microchipContainerStyle: React.CSSProperties = {
+    marginBottom: '20px',
+    padding: '12px',
+    backgroundColor: '#e8f5e9',
+    borderRadius: '12px',
+    border: '1px solid #c8e6c9',
+  };
+
+  const microchipInputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '10px 12px',
+    backgroundColor: '#f5f5f5',
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontFamily: 'monospace',
+    color: '#333',
+  };
+
+  const hintTextStyle: React.CSSProperties = {
+    fontSize: '11px',
+    color: '#666',
+    marginTop: '6px',
+    marginBottom: 0,
   };
 
   // Mobile: drag & drop ocupa 100% ample
@@ -371,6 +469,39 @@ const EditarAnuncioPage: React.FC = () => {
             <option value={1}>Perdut</option>
             <option value={2}>Trobat</option>
           </select>
+
+          {/* 🔥 CHECKBOX GEOLOCALITZACIÓ */}
+          <div style={checkboxContainerStyle}>
+            <input
+              type="checkbox"
+              id="teGeolocalitzacio"
+              checked={teGeolocalitzacio}
+              onChange={(e) => handleTeGeolocalitzacioChange(e.target.checked)}
+              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+            />
+            <label htmlFor="teGeolocalitzacio" style={{ cursor: 'pointer', fontWeight: 500 }}>
+              📡 Disposa de geolocalització en temps real (microchip GPS)
+            </label>
+          </div>
+
+          {/* 🔥 MICROCHIP ID (només si té geolocalització) */}
+          {teGeolocalitzacio && (
+            <div style={microchipContainerStyle}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
+                🔢 Microchip ID
+              </label>
+              <input
+                type="text"
+                style={microchipInputStyle}
+                value={microchipId || ''}
+                onChange={(e) => setMicrochipId(e.target.value)}
+                placeholder="ID del microchip"
+              />
+              <p style={hintTextStyle}>
+                💡 ID únic per identificar la mascota en el sistema de geolocalització.
+              </p>
+            </div>
+          )}
 
           {/* Imatge */}
           <div>

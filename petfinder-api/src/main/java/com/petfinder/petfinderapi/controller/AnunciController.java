@@ -23,6 +23,8 @@ public class AnunciController {
     @PostMapping("/crear")
     public String crearAnunci(@RequestBody PostAnunciDTO dto, @RequestParam Long usuariId) throws Exception {
         try {
+            System.out.println("📥 Rebut teGeolocalitzacio: " + dto.getTeGeolocalitzacio());
+            System.out.println("📥 Rebut microchipId: " + dto.getMicrochipId());
             anunciService.crearAnunci(dto, usuariId);
             return "OK";
         } catch (Exception e) {

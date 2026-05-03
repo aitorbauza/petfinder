@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useContext, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useContext, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { obtenerAnuncios } from '../services/anuncioService';
+import { geolocalitzacioService } from '../services/geolocalitzacioService';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { styles, mobileStyles } from '../styles/mapaStyles';
@@ -9,6 +10,7 @@ import ChatFloatingButton from '../components/ChatFloatingButton';
 import { UserContext } from '../context/UserContext';
 import FiltresMapa, { type Filters } from '../components/FiltresMapa';
 import { EspecieEnum } from '../enums/EspecieEnum';
+import type { UbicacioTempsReal } from '../types/geolocalitzacio';
 
 // Configuración iconos Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -18,9 +20,17 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-// Icono personalizado para el mapa
+// Icono estándar para mascotas sin geolocalización
 const petIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/1998/1998625.png',
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32]
+});
+
+// Icono para mascotas con geolocalización activa (GPS)
+const petIconGPS = new L.Icon({
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
   iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32]
@@ -31,6 +41,7 @@ const PLACEHOLDER_URL = `${API_URL}/uploads/mascotes/placeholder-logo-3-300x300.
 
 interface Anuncio {
   id: number;
+  mascotaId: number;
   latitud: number;
   longitud: number;
   nomMascota: string;
@@ -41,13 +52,32 @@ interface Anuncio {
   imatgeUrl: string | null;
   ciutat?: string;
   provincia?: string;
+  teGeolocalitzacio?: boolean;
+  microchipId?: string | null;
 }
 
-interface MarkerGroup {
-  lat: number;
-  lng: number;
-  anuncios: Anuncio[];
+// Mapa d'ubicacions en temps real per mascotaId
+interface UbicacioMap {
+  [mascotaId: number]: UbicacioTempsReal;
 }
+
+// 🔥 Funció per desplaçar markers a la mateixa posició (spiderfying)
+const getOffsetPosition = (baseLat: number, baseLng: number, index: number, total: number): { lat: number; lng: number } => {
+  if (total === 1) {
+    return { lat: baseLat, lng: baseLng };
+  }
+  
+  // Radi de desplaçament en graus (~30 metres)
+  const radius = 0.0003;
+  const angle = (index / total) * Math.PI * 2;
+  const offsetLat = Math.cos(angle) * radius;
+  const offsetLng = Math.sin(angle) * radius;
+  
+  return {
+    lat: baseLat + offsetLat,
+    lng: baseLng + offsetLng
+  };
+};
 
 const MapaPage: React.FC = () => {
   const { user } = useContext(UserContext);
@@ -61,6 +91,9 @@ const MapaPage: React.FC = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
+  // Estat per a ubicacions en temps real
+  const [ubicacionsTempsReal, setUbicacionsTempsReal] = useState<UbicacioMap>({});
+
   const [openChatConversaId, setOpenChatConversaId] = useState<number | null>(null);
   const [openChatDestinatariId, setOpenChatDestinatariId] = useState<number | null>(null);
   const [openChatAnunciId, setOpenChatAnunciId] = useState<number | null>(null);
@@ -73,10 +106,41 @@ const MapaPage: React.FC = () => {
     teGeolocalitzacio: false
   });
 
-  // Aplicar filtres als anuncis (només espècie i estat)
+  // Funció per carregar ubicacions actives
+  const carregarUbicacionsActives = useCallback(async () => {
+    try {
+      const ubicacions = await geolocalitzacioService.obtenirTotesUbicacionsActives();
+      const nouMap: UbicacioMap = {};
+      ubicacions.forEach(ubicacio => {
+        if (ubicacio.mascotaId) {
+          nouMap[ubicacio.mascotaId] = ubicacio;
+        }
+      });
+      setUbicacionsTempsReal(nouMap);
+    } catch (error) {
+      console.error('Error carregant ubicacions actives:', error);
+    }
+  }, []);
+
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      carregarUbicacionsActives();
+      isFirstRender.current = false;
+    }
+    
+    const interval = setInterval(() => {
+      carregarUbicacionsActives();
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [carregarUbicacionsActives]);
+
+  // Aplicar filtres als anuncis
   const anunciosFiltrats = useMemo(() => {
     return anuncios.filter(anuncio => {
-      // Filtre per espècie (utilitzant especieId)
+      // Filtre per espècie
       if (filters.especie !== 'tots') {
         const especieId = anuncio.especieId;
         if (especieId === undefined) return false;
@@ -106,29 +170,56 @@ const MapaPage: React.FC = () => {
         if (filters.estat === 'trobat' && estatLower !== 'trobat') return false;
       }
       
+      // Filtre per geolocalització activa
+      const teGeolocalitzacioActiva = anuncio.teGeolocalitzacio === true;
+      if (filters.teGeolocalitzacio && !teGeolocalitzacioActiva) {
+        return false;
+      }
+      
       return true;
     });
   }, [anuncios, filters]);
 
-  // Agrupar anuncis per coordenades per als markers
-  const markerGroups = useMemo(() => {
-    const groups = new Map<string, MarkerGroup>();
+  // Funció per obtenir la posició actual d'una mascota (temps real o estàtica)
+  const getPosicioAnunci = useCallback((anuncio: Anuncio): { lat: number; lng: number } => {
+    if (anuncio.teGeolocalitzacio === true && ubicacionsTempsReal[anuncio.mascotaId]) {
+      const ubicacio = ubicacionsTempsReal[anuncio.mascotaId];
+      return { lat: ubicacio.latitud, lng: ubicacio.longitud };
+    }
+    return { lat: anuncio.latitud, lng: anuncio.longitud };
+  }, [ubicacionsTempsReal]);
+
+  // 🔥 Agrupar anuncis per ubicació (per aplicar desplaçament)
+  const markersAmbDesplacament = useMemo(() => {
+    const groups = new Map<string, Anuncio[]>();
     
     anunciosFiltrats.forEach(anuncio => {
-      const key = `${anuncio.latitud},${anuncio.longitud}`;
-      if (groups.has(key)) {
-        groups.get(key)!.anuncios.push(anuncio);
-      } else {
-        groups.set(key, {
-          lat: anuncio.latitud,
-          lng: anuncio.longitud,
-          anuncios: [anuncio]
-        });
+      const posicio = getPosicioAnunci(anuncio);
+      const key = `${posicio.lat.toFixed(6)},${posicio.lng.toFixed(6)}`;
+      if (!groups.has(key)) {
+        groups.set(key, []);
       }
+      groups.get(key)!.push(anuncio);
     });
     
-    return Array.from(groups.values());
-  }, [anunciosFiltrats]);
+    // Generar markers amb desplaçament
+    const result: { anuncio: Anuncio; lat: number; lng: number; icon: L.Icon }[] = [];
+    
+    groups.forEach((anuncis, key) => {
+      const [baseLat, baseLng] = key.split(',').map(Number);
+      anuncis.forEach((anuncio, idx) => {
+        const posicioOffset = getOffsetPosition(baseLat, baseLng, idx, anuncis.length);
+        result.push({
+          anuncio,
+          lat: posicioOffset.lat,
+          lng: posicioOffset.lng,
+          icon: anuncio.teGeolocalitzacio === true ? petIconGPS : petIcon
+        });
+      });
+    });
+    
+    return result;
+  }, [anunciosFiltrats, getPosicioAnunci]);
 
   // Efecte per rebre l'estat de navegació del xat
   useEffect(() => {
@@ -212,7 +303,6 @@ const MapaPage: React.FC = () => {
     return styles.mainContent as React.CSSProperties;
   };
 
-  // 🔥 CORREGIT: Panell esquerre amb flex column per permetre scroll només als cards
   const getLeftPanelStyle = (): React.CSSProperties => {
     if (isMobile) {
       return { ...styles.leftPanel, ...mobileStyles.leftPanel } as React.CSSProperties;
@@ -339,17 +429,24 @@ const MapaPage: React.FC = () => {
   // Verificar si hi ha filtres actius
   const hasActiveFilters = filters.especie !== 'tots' || filters.estat !== 'tots';
 
+  const getUltimaActualitzacio = (anuncio: Anuncio): string | null => {
+    if (anuncio.teGeolocalitzacio === true && ubicacionsTempsReal[anuncio.mascotaId]) {
+      const timestamp = ubicacionsTempsReal[anuncio.mascotaId].timestamp;
+      if (timestamp) {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+    }
+    return null;
+  };
+
   return (
     <div style={styles.container}>
       <Header />
 
       <div style={getMainContentStyle()}>
-        {/* PANELL ESQUERRE: FILTRES (FIXOS) + CARDS (SCROLL SEPARAT) */}
         <div style={getLeftPanelStyle()}>
-          
-          {/* SECCIÓ FILTRES - Sense scroll */}
           <div style={{ flexShrink: 0 }}>
-            {/* Filtres (desktop) */}
             {!isMobile && (
               <FiltresMapa
                 onFilterChange={setFilters}
@@ -359,7 +456,6 @@ const MapaPage: React.FC = () => {
               />
             )}
 
-            {/* Botó de filtres per a mòbil */}
             {isMobile && (
               <button
                 style={{
@@ -396,7 +492,6 @@ const MapaPage: React.FC = () => {
             )}
           </div>
 
-          {/* SECCIÓ CARDS - Amb scroll independent */}
           <div style={{ 
             flex: 1,
             overflowY: 'auto',
@@ -428,7 +523,9 @@ const MapaPage: React.FC = () => {
                   />
                   
                   <div style={styles.cardContent}>
-                    <h3 style={styles.petName}>{anuncio.nomMascota}</h3>
+                    <h3 style={styles.petName}>
+                      {anuncio.nomMascota}
+                    </h3>
                     <p style={styles.breedText}>
                       {anuncio.especie} - {getRacaText(anuncio.raca)}
                     </p>
@@ -468,9 +565,7 @@ const MapaPage: React.FC = () => {
           </div>
         </div>
 
-        {/* PANELL DRET: MAPA */}
         <div style={getMapPanelStyle()}>
-          {/* Botó "Crear anunci" */}
           <button
             style={{
               position: 'absolute',
@@ -501,7 +596,6 @@ const MapaPage: React.FC = () => {
             + Crear anunci
           </button>
 
-          {/* MAPCONTAINER */}
           <MapContainer
             center={[41.3851, 2.1734]}
             zoom={13}
@@ -509,85 +603,60 @@ const MapaPage: React.FC = () => {
           >
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             
-            {markerGroups.map((group, idx) => (
+            {/* 🔥 MOSTRAR TOTS ELS MARKERS AMB DESPLAÇAMENT */}
+            {markersAmbDesplacament.map((item, idx) => (
               <Marker
-                key={idx}
-                position={[group.lat, group.lng]}
-                icon={petIcon}
+                key={`marker-${item.anuncio.id}-${idx}`}
+                position={[item.lat, item.lng]}
+                icon={item.icon}
               >
                 <Popup>
                   <div style={styles.popupContent}>
-                    {group.anuncios.length === 1 ? (
-                      <>
-                        <img 
-                          src={getImatgeUrl(group.anuncios[0].imatgeUrl)} 
-                          alt={group.anuncios[0].nomMascota}
-                          style={styles.popupImage}
-                          onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_URL; }}
-                        />
-                        <div style={styles.popupName}>{group.anuncios[0].nomMascota}</div>
-                        <div style={styles.popupBreed}>
-                          {group.anuncios[0].especie} - {getRacaText(group.anuncios[0].raca)}
-                        </div>
-                        <div style={group.anuncios[0].estat === 'Perdut' ? styles.popupStatusPerdut : styles.popupStatusTrobat}>
-                          {group.anuncios[0].estat}
-                        </div>
-                        <button 
-                          onClick={() => goToAnunciDetail(group.anuncios[0].id)}
-                          style={{
-                            marginTop: '10px',
-                            padding: '6px 12px',
-                            backgroundColor: '#06682D',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '20px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            width: '100%',
-                          }}
-                        >
-                          Veure detall
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-                          📍 {group.anuncios.length} mascotes en aquesta ubicació
-                        </div>
-                        {group.anuncios.map(anuncio => (
-                          <div 
-                            key={anuncio.id}
-                            style={{ 
-                              padding: '8px', 
-                              borderBottom: '1px solid #eee', 
-                              cursor: 'pointer',
-                              marginBottom: '4px'
-                            }}
-                            onClick={() => goToAnunciDetail(anuncio.id)}
-                          >
-                            <strong>{anuncio.nomMascota}</strong> - {anuncio.especie}
-                            <span style={{ 
-                              display: 'inline-block', 
-                              marginLeft: '8px',
-                              fontSize: '10px',
-                              padding: '2px 6px',
-                              borderRadius: '10px',
-                              backgroundColor: anuncio.estat === 'Perdut' ? '#ffebee' : '#e8f5e9',
-                              color: anuncio.estat === 'Perdut' ? '#c62828' : '#2e7d32'
-                            }}>
-                              {anuncio.estat}
-                            </span>
-                          </div>
-                        ))}
-                      </>
+                    <img 
+                      src={getImatgeUrl(item.anuncio.imatgeUrl)} 
+                      alt={item.anuncio.nomMascota}
+                      style={styles.popupImage}
+                      onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_URL; }}
+                    />
+                    <div style={styles.popupName}>{item.anuncio.nomMascota}</div>
+                    <div style={styles.popupBreed}>
+                      {item.anuncio.especie} - {getRacaText(item.anuncio.raca)}
+                    </div>
+                    <div style={item.anuncio.estat === 'Perdut' ? styles.popupStatusPerdut : styles.popupStatusTrobat}>
+                      {item.anuncio.estat}
+                    </div>
+                    {item.anuncio.teGeolocalitzacio === true && (
+                      <div style={{ fontSize: '10px', color: '#06682D', marginTop: '8px' }}>
+                        📡 En temps real
+                        {getUltimaActualitzacio(item.anuncio) && (
+                          <span style={{ display: 'block', fontSize: '9px', color: '#888' }}>
+                            Actualitzat: {getUltimaActualitzacio(item.anuncio)}
+                          </span>
+                        )}
+                      </div>
                     )}
+                    <button 
+                      onClick={() => goToAnunciDetail(item.anuncio.id)}
+                      style={{
+                        marginTop: '10px',
+                        padding: '6px 12px',
+                        backgroundColor: '#06682D',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '20px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        width: '100%',
+                      }}
+                    >
+                      Veure detall
+                    </button>
                   </div>
                 </Popup>
               </Marker>
             ))}
           </MapContainer>
 
-          {/* 🔥 Botó flotant del xat - DINS del mateix contenidor que el mapa */}
           <ChatFloatingButton 
             usuariId={user?.usuariId || 0}
             openConversaId={openChatConversaId}
@@ -603,7 +672,6 @@ const MapaPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal de filtres per a mòbil */}
       {isMobile && (
         <FiltresMapa
           onFilterChange={setFilters}
@@ -613,7 +681,6 @@ const MapaPage: React.FC = () => {
         />
       )}
 
-      {/* Popup flotant de detall ràpid */}
       {showPopup && selectedAnuncio && (
         <div style={popupOverlayStyle} onClick={closePopup}>
           <div style={floatingPopupStyle} onClick={(e) => e.stopPropagation()}>
@@ -627,13 +694,18 @@ const MapaPage: React.FC = () => {
             />
             <div style={popupContentStyle}>
               <div style={popupHeaderStyle}>
-                <h2 style={popupTitleStyle}>{selectedAnuncio.nomMascota}</h2>
+                <h2 style={popupTitleStyle}>
+                  {selectedAnuncio.nomMascota}
+                </h2>
                 <button style={closeButtonStyle} onClick={closePopup}>✕</button>
               </div>
               <p><strong>Espècie:</strong> {selectedAnuncio.especie}</p>
               <p><strong>Raça:</strong> {getRacaText(selectedAnuncio.raca)}</p>
               <p><strong>Estat:</strong> {selectedAnuncio.estat}</p>
               <p><strong>Ubicació:</strong> {getUbicacioText(selectedAnuncio)}</p>
+              {selectedAnuncio.teGeolocalitzacio === true && selectedAnuncio.microchipId && (
+                <p><strong>🔢 Microchip ID:</strong> {selectedAnuncio.microchipId}</p>
+              )}
               <button
                 style={popupDetailButtonStyle}
                 onClick={() => goToAnunciDetail(selectedAnuncio.id)}

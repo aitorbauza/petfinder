@@ -15,6 +15,8 @@ export interface PostAnunciDTO {
   imatgeUrl: string | null;
   ciutat: string;
   provincia: string;
+  teGeolocalitzacio: boolean;
+  microchipId: string | null;
 }
 
 export interface GetAnunciDTO {
@@ -31,9 +33,12 @@ export interface GetAnunciDTO {
   imatgeUrl: string | null;
   ciutat: string;
   provincia: string;
-  usuariId: number;       
-  usuariNom: string;       
-  usuariTelefon: string;   
+  usuariId: number;
+  usuariNom: string;
+  usuariTelefon: string;
+  teGeolocalitzacio: boolean;
+  microchipId: string | null;
+  mascotaId: number;
 }
 
 // Mètodes
