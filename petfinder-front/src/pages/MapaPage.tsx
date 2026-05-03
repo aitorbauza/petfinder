@@ -34,11 +34,22 @@ interface Anuncio {
   raca: string;
   estat: string;
   imatgeUrl: string | null;
+  ciutat?: string;
+  provincia?: string;
+}
+
+interface MarkerGroup {
+  lat: number;
+  lng: number;
+  anuncios: Anuncio[];
 }
 
 const MapaPage: React.FC = () => {
   const [anuncios, setAnuncios] = useState<Anuncio[]>([]);
+  const [markerGroups, setMarkerGroups] = useState<MarkerGroup[]>([]);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [selectedAnuncio, setSelectedAnuncio] = useState<Anuncio | null>(null);
+  const [showPopup, setShowPopup] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,6 +63,25 @@ const MapaPage: React.FC = () => {
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const groups = new Map<string, MarkerGroup>();
+    
+    anuncios.forEach(anuncio => {
+      const key = `${anuncio.latitud},${anuncio.longitud}`;
+      if (groups.has(key)) {
+        groups.get(key)!.anuncios.push(anuncio);
+      } else {
+        groups.set(key, {
+          lat: anuncio.latitud,
+          lng: anuncio.longitud,
+          anuncios: [anuncio]
+        });
+      }
+    });
+    
+    setMarkerGroups(Array.from(groups.values()));
+  }, [anuncios]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -69,7 +99,31 @@ const MapaPage: React.FC = () => {
     return `${API_URL}${imatgeUrl}`;
   };
 
-  // Combinar estils segons dispositiu
+  const getUbicacioText = (anuncio: Anuncio) => {
+    if (anuncio.provincia && anuncio.ciutat) {
+      return `${anuncio.provincia} - ${anuncio.ciutat}`;
+    }
+    if (anuncio.ciutat) return anuncio.ciutat;
+    if (anuncio.provincia) return anuncio.provincia;
+    return 'Ubicació no disponible';
+  };
+
+  const goToAnunciDetail = (anunciId: number) => {
+    setShowPopup(false);
+    setSelectedAnuncio(null);
+    navigate(`/anunci/${anunciId}`);
+  };
+
+  const openDetailPopup = (anuncio: Anuncio) => {
+    setSelectedAnuncio(anuncio);
+    setShowPopup(true);
+  };
+
+  const closePopup = () => {
+    setShowPopup(false);
+    setSelectedAnuncio(null);
+  };
+
   const getMainContentStyle = (): React.CSSProperties => {
     if (isMobile) {
       return { ...styles.mainContent, ...mobileStyles.mainContent } as React.CSSProperties;
@@ -112,6 +166,96 @@ const MapaPage: React.FC = () => {
     return styles.fab as React.CSSProperties;
   };
 
+  const detailButtonStyle: React.CSSProperties = {
+    marginTop: '10px',
+    padding: '6px 12px',
+    backgroundColor: '#06682D',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '20px',
+    cursor: 'pointer',
+    fontSize: '12px',
+    fontWeight: 500,
+    width: 'auto',
+    minWidth: '100px',
+    maxWidth: '120px',
+    transition: 'background 0.2s',
+    display: 'inline-block',
+  };
+
+  // 🔥 Popup flotant amb imatge més ampla (300px d'alt)
+  const floatingPopupStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    backgroundColor: '#fff',
+    borderRadius: '24px',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+    zIndex: 2000,
+    width: isMobile ? '90%' : '450px',
+    maxWidth: '450px',
+    overflow: 'hidden',
+  };
+
+  const popupOverlayStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 1999,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+
+  const popupImageStyle: React.CSSProperties = {
+    width: '100%',
+    height: '300px',
+    objectFit: 'cover',
+  };
+
+  const popupContentStyle: React.CSSProperties = {
+    padding: '20px',
+  };
+
+  const popupHeaderStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16px',
+  };
+
+  const popupTitleStyle: React.CSSProperties = {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    margin: 0,
+    color: '#1a1a1a',
+  };
+
+  const closeButtonStyle: React.CSSProperties = {
+    background: 'none',
+    border: 'none',
+    fontSize: '24px',
+    cursor: 'pointer',
+    color: '#666',
+  };
+
+  const popupDetailButtonStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '12px',
+    backgroundColor: '#06682D',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '12px',
+    fontSize: '16px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    marginTop: '16px',
+  };
+
   return (
     <div style={styles.container}>
       <Header />
@@ -123,13 +267,7 @@ const MapaPage: React.FC = () => {
               <div
                 key={anuncio.id}
                 style={styles.card}
-                onClick={() => {
-                  const mapElement = document.querySelector('.leaflet-container');
-                  if (mapElement && (mapElement as any).__leaflet_map) {
-                    const map = (mapElement as any).__leaflet_map;
-                    map.setView([anuncio.latitud, anuncio.longitud], 15);
-                  }
-                }}
+                onClick={() => openDetailPopup(anuncio)}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
                   e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
@@ -153,9 +291,29 @@ const MapaPage: React.FC = () => {
                   <p style={styles.breedText}>
                     {anuncio.especie} - {getRacaText(anuncio.raca)}
                   </p>
-                  <span style={anuncio.estat === 'Perdut' ? styles.statusPerdut : styles.statusTrobat}>
-                    {anuncio.estat}
-                  </span>
+                  <p style={{ ...styles.breedText, fontSize: '11px', color: '#888', marginTop: '4px' }}>
+                    📍 {getUbicacioText(anuncio)}
+                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                    <span style={anuncio.estat === 'Perdut' ? styles.statusPerdut : styles.statusTrobat}>
+                      {anuncio.estat}
+                    </span>
+                    <button
+                      style={detailButtonStyle}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        goToAnunciDetail(anuncio.id);
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#055523';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = '#06682D';
+                      }}
+                    >
+                      Veure detall
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -168,35 +326,116 @@ const MapaPage: React.FC = () => {
           )}
         </div>
 
-        {/* MAPA */}
         <div style={getMapPanelStyle()}>
+          <button
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              background: '#06682D',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '40px',
+              padding: '10px 20px',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            }}
+            onClick={() => navigate('/crear')}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#055523';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#06682D';
+            }}
+          >
+            Crear anunci
+          </button>
+
           <MapContainer
             center={[41.3851, 2.1734]}
             zoom={13}
             style={styles.map}
           >
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            {anuncios.map((anuncio) => (
+            
+            {markerGroups.map((group, idx) => (
               <Marker
-                key={anuncio.id}
-                position={[anuncio.latitud, anuncio.longitud]}
+                key={idx}
+                position={[group.lat, group.lng]}
                 icon={petIcon}
               >
                 <Popup>
                   <div style={styles.popupContent}>
-                    <img 
-                      src={getImatgeUrl(anuncio.imatgeUrl)} 
-                      alt={anuncio.nomMascota}
-                      style={styles.popupImage}
-                      onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_URL; }}
-                    />
-                    <div style={styles.popupName}>{anuncio.nomMascota}</div>
-                    <div style={styles.popupBreed}>
-                      {anuncio.especie} - {getRacaText(anuncio.raca)}
-                    </div>
-                    <div style={anuncio.estat === 'Perdut' ? styles.popupStatusPerdut : styles.popupStatusTrobat}>
-                      {anuncio.estat}
-                    </div>
+                    {group.anuncios.length === 1 ? (
+                      <>
+                        <img 
+                          src={getImatgeUrl(group.anuncios[0].imatgeUrl)} 
+                          alt={group.anuncios[0].nomMascota}
+                          style={styles.popupImage}
+                          onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_URL; }}
+                        />
+                        <div style={styles.popupName}>{group.anuncios[0].nomMascota}</div>
+                        <div style={styles.popupBreed}>
+                          {group.anuncios[0].especie} - {getRacaText(group.anuncios[0].raca)}
+                        </div>
+                        <div style={group.anuncios[0].estat === 'Perdut' ? styles.popupStatusPerdut : styles.popupStatusTrobat}>
+                          {group.anuncios[0].estat}
+                        </div>
+                        <button 
+                          onClick={() => goToAnunciDetail(group.anuncios[0].id)}
+                          style={{
+                            marginTop: '10px',
+                            padding: '6px 12px',
+                            backgroundColor: '#06682D',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '20px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            width: '100%',
+                          }}
+                        >
+                          Veure detall
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+                          📍 {group.anuncios.length} mascotes en aquesta ubicació
+                        </div>
+                        {group.anuncios.map(anuncio => (
+                          <div 
+                            key={anuncio.id}
+                            style={{ 
+                              padding: '8px', 
+                              borderBottom: '1px solid #eee', 
+                              cursor: 'pointer',
+                              marginBottom: '4px'
+                            }}
+                            onClick={() => goToAnunciDetail(anuncio.id)}
+                          >
+                            <strong>{anuncio.nomMascota}</strong> - {anuncio.especie}
+                            <span style={{ 
+                              display: 'inline-block', 
+                              marginLeft: '8px',
+                              fontSize: '10px',
+                              padding: '2px 6px',
+                              borderRadius: '10px',
+                              backgroundColor: anuncio.estat === 'Perdut' ? '#ffebee' : '#e8f5e9',
+                              color: anuncio.estat === 'Perdut' ? '#c62828' : '#2e7d32'
+                            }}>
+                              {anuncio.estat}
+                            </span>
+                          </div>
+                        ))}
+                      </>
+                    )}
                   </div>
                 </Popup>
               </Marker>
@@ -219,6 +458,37 @@ const MapaPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {showPopup && selectedAnuncio && (
+        <div style={popupOverlayStyle} onClick={closePopup}>
+          <div style={floatingPopupStyle} onClick={(e) => e.stopPropagation()}>
+            <img
+              src={getImatgeUrl(selectedAnuncio.imatgeUrl)}
+              alt={selectedAnuncio.nomMascota}
+              style={popupImageStyle}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = PLACEHOLDER_URL;
+              }}
+            />
+            <div style={popupContentStyle}>
+              <div style={popupHeaderStyle}>
+                <h2 style={popupTitleStyle}>{selectedAnuncio.nomMascota}</h2>
+                <button style={closeButtonStyle} onClick={closePopup}>✕</button>
+              </div>
+              <p><strong>Espècie:</strong> {selectedAnuncio.especie}</p>
+              <p><strong>Raça:</strong> {getRacaText(selectedAnuncio.raca)}</p>
+              <p><strong>Estat:</strong> {selectedAnuncio.estat}</p>
+              <p><strong>Ubicació:</strong> {getUbicacioText(selectedAnuncio)}</p>
+              <button
+                style={popupDetailButtonStyle}
+                onClick={() => goToAnunciDetail(selectedAnuncio.id)}
+              >
+                Veure detall complet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -7,6 +7,7 @@ import CrearAnuncioPage from './pages/CrearAnuncioPage';
 import PerfilPage from './pages/PerfilPage';
 import MisAnunciosPage from './pages/MisAnunciosPage';
 import EditarAnuncioPage from './pages/EditarAnuncioPage';
+import DetallAnunciPage from './pages/DetallAnunciPage';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/perfil" element={<PerfilPage />} />
           <Route path="/mis-anuncios" element={<MisAnunciosPage />} />
           <Route path="/editar-anunci/:id" element={<EditarAnuncioPage />} />
+          <Route path="/anunci/:id" element={<DetallAnunciPage />} />
         </Routes>
       </BrowserRouter>
     </UserProvider>

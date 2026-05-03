@@ -20,7 +20,7 @@ interface Anuncio {
   provincia: string;
 }
 
-const ITEMS_PER_PAGE = 6;
+const getItemsPerPage = (isMobile: boolean) => isMobile ? 2 : 6;
 
 const MisAnunciosPage: React.FC = () => {
   const { user } = useContext(UserContext);
@@ -66,7 +66,6 @@ const MisAnunciosPage: React.FC = () => {
     setDeleting(true);
     try {
       await eliminarAnunci(anunciId, user.usuariId);
-      // Eliminar l'anunci de la llista local
       setAnuncios(anuncios.filter(a => a.id !== anunciId));
       setShowDeleteConfirm(null);
     } catch (error) {
@@ -77,9 +76,10 @@ const MisAnunciosPage: React.FC = () => {
     }
   };
 
-  const totalPages = Math.ceil(anuncios.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const itemsPerPage = getItemsPerPage(isMobile);
+  const totalPages = Math.ceil(anuncios.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
   const currentAnuncios = anuncios.slice(startIndex, endIndex);
 
   const goToPage = (page: number) => {
@@ -140,7 +140,6 @@ const MisAnunciosPage: React.FC = () => {
     objectFit: 'cover',
   };
 
-  // 🔥 Botons circulars (overlay a la imatge)
   const actionsOverlayStyle: React.CSSProperties = {
     position: 'absolute',
     bottom: '10px',
@@ -265,7 +264,6 @@ const MisAnunciosPage: React.FC = () => {
     color: '#999',
   };
 
-  // Modal de confirmació
   const modalOverlayStyle: React.CSSProperties = {
     position: 'fixed',
     top: 0,
@@ -338,7 +336,6 @@ const MisAnunciosPage: React.FC = () => {
                         (e.target as HTMLImageElement).src = placeholderImageUrl;
                       }}
                     />
-                    {/* Botons circulars overlay */}
                     <div style={actionsOverlayStyle}>
                       <div
                         style={editButtonStyle}
@@ -410,7 +407,6 @@ const MisAnunciosPage: React.FC = () => {
         )}
       </div>
 
-      {/* Modal de confirmació d'eliminació */}
       {showDeleteConfirm !== null && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>

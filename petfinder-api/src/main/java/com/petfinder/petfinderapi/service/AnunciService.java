@@ -21,6 +21,7 @@ public class AnunciService {
 
     private static final Logger log = LoggerFactory.getLogger(AnunciService.class);
     private static final String RACA_PER_DEFECTE = "Sin raza";
+    private static final String DESCRIPCIO_PER_DEFECTE = "Sin descripción";
 
     private final AnunciRepository anunciRepository;
     private final MascotaRepository mascotaRepository;
@@ -110,7 +111,6 @@ public class AnunciService {
     }
 
     // ==================== MÈTODES PRIVATS ====================
-
     private Usuari obtenirUsuariPerId(Long usuariId) {
         return usuariRepository.findById(usuariId)
                 .orElseThrow(() -> new BusinessException("Usuari no trobat"));
@@ -144,7 +144,7 @@ public class AnunciService {
     private Mascota construirMascota(PostAnunciDTO dto, Usuari usuari, Especie especie) {
         Mascota mascota = new Mascota();
         mascota.setNom(dto.getNomMascota());
-        mascota.setDescripcio(dto.getDescripcio());
+        mascota.setDescripcio(dto.getDescripcio() != null && !dto.getDescripcio().isEmpty() ? dto.getDescripcio() : DESCRIPCIO_PER_DEFECTE);
         mascota.setEspecie(especie);
         mascota.setUsuari(usuari);
         mascota.setRaca(dto.getRaca() != null && !dto.getRaca().isEmpty() ? dto.getRaca() : RACA_PER_DEFECTE);
@@ -186,7 +186,7 @@ public class AnunciService {
     private void actualitzarDadesMascota(Mascota mascota, PostAnunciDTO dto) {
         mascota.setNom(dto.getNomMascota());
         mascota.setRaca(dto.getRaca() != null && !dto.getRaca().isEmpty() ? dto.getRaca() : RACA_PER_DEFECTE);
-        mascota.setDescripcio(dto.getDescripcio());
+        mascota.setDescripcio(dto.getDescripcio() != null && !dto.getDescripcio().isEmpty() ? dto.getDescripcio() : DESCRIPCIO_PER_DEFECTE);
 
         if (dto.getEspecieId() != null) {
             Especie especie = obtenirEspeciePerId(dto.getEspecieId());
