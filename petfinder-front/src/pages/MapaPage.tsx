@@ -7,6 +7,8 @@ import { styles, mobileStyles } from '../styles/mapaStyles';
 import Header from '../components/Header';
 import ChatFloatingButton from '../components/ChatFloatingButton';
 import { UserContext } from '../context/UserContext';
+import FiltresMapa, { type Filters } from '../components/FiltresMapa';
+import { EspecieEnum } from '../enums/EspecieEnum';
 
 // Configuración iconos Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -33,6 +35,7 @@ interface Anuncio {
   longitud: number;
   nomMascota: string;
   especie: string;
+  especieId?: number;
   raca: string;
   estat: string;
   imatgeUrl: string | null;
@@ -56,16 +59,62 @@ const MapaPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [selectedAnuncio, setSelectedAnuncio] = useState<Anuncio | null>(null);
   const [showPopup, setShowPopup] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [openChatConversaId, setOpenChatConversaId] = useState<number | null>(null);
   const [openChatDestinatariId, setOpenChatDestinatariId] = useState<number | null>(null);
   const [openChatAnunciId, setOpenChatAnunciId] = useState<number | null>(null);
 
-  // 🔥 Usar useMemo per evitar cascading renders
+  // Estat dels filtres
+  const [filters, setFilters] = useState<Filters>({
+    especie: 'tots',
+    estat: 'tots',
+    distancia: 5,
+    teGeolocalitzacio: false
+  });
+
+  // Aplicar filtres als anuncis (només espècie i estat)
+  const anunciosFiltrats = useMemo(() => {
+    return anuncios.filter(anuncio => {
+      // Filtre per espècie (utilitzant especieId)
+      if (filters.especie !== 'tots') {
+        const especieId = anuncio.especieId;
+        if (especieId === undefined) return false;
+        
+        switch (filters.especie) {
+          case 'gos':
+            if (especieId !== EspecieEnum.GOS) return false;
+            break;
+          case 'gat':
+            if (especieId !== EspecieEnum.GAT) return false;
+            break;
+          case 'conill':
+            if (especieId !== EspecieEnum.CONILL) return false;
+            break;
+          case 'altres':
+            if (especieId !== EspecieEnum.OTRO) return false;
+            break;
+          default:
+            break;
+        }
+      }
+      
+      // Filtre per estat
+      if (filters.estat !== 'tots') {
+        const estatLower = anuncio.estat?.toLowerCase() || '';
+        if (filters.estat === 'perdut' && estatLower !== 'perdut') return false;
+        if (filters.estat === 'trobat' && estatLower !== 'trobat') return false;
+      }
+      
+      return true;
+    });
+  }, [anuncios, filters]);
+
+  // Agrupar anuncis per coordenades per als markers
   const markerGroups = useMemo(() => {
     const groups = new Map<string, MarkerGroup>();
     
-    anuncios.forEach(anuncio => {
+    anunciosFiltrats.forEach(anuncio => {
       const key = `${anuncio.latitud},${anuncio.longitud}`;
       if (groups.has(key)) {
         groups.get(key)!.anuncios.push(anuncio);
@@ -79,7 +128,7 @@ const MapaPage: React.FC = () => {
     });
     
     return Array.from(groups.values());
-  }, [anuncios]);
+  }, [anunciosFiltrats]);
 
   // Efecte per rebre l'estat de navegació del xat
   useEffect(() => {
@@ -163,11 +212,18 @@ const MapaPage: React.FC = () => {
     return styles.mainContent as React.CSSProperties;
   };
 
+  // 🔥 CORREGIT: Panell esquerre amb flex column per permetre scroll només als cards
   const getLeftPanelStyle = (): React.CSSProperties => {
     if (isMobile) {
       return { ...styles.leftPanel, ...mobileStyles.leftPanel } as React.CSSProperties;
     }
-    return styles.leftPanel as React.CSSProperties;
+    return {
+      ...styles.leftPanel,
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+      height: '100%',
+    } as React.CSSProperties;
   };
 
   const getMapPanelStyle = (): React.CSSProperties => {
@@ -280,75 +336,136 @@ const MapaPage: React.FC = () => {
     marginTop: '16px',
   };
 
+  // Verificar si hi ha filtres actius
+  const hasActiveFilters = filters.especie !== 'tots' || filters.estat !== 'tots';
+
   return (
     <div style={styles.container}>
       <Header />
 
       <div style={getMainContentStyle()}>
-        {/* PANELL ESQUERRE: LLISTA D'ANUNCIS */}
+        {/* PANELL ESQUERRE: FILTRES (FIXOS) + CARDS (SCROLL SEPARAT) */}
         <div style={getLeftPanelStyle()}>
-          <div style={getCardsGridStyle()}>
-            {anuncios.map((anuncio) => (
-              <div
-                key={anuncio.id}
-                style={styles.card}
-                onClick={() => openDetailPopup(anuncio)}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+          
+          {/* SECCIÓ FILTRES - Sense scroll */}
+          <div style={{ flexShrink: 0 }}>
+            {/* Filtres (desktop) */}
+            {!isMobile && (
+              <FiltresMapa
+                onFilterChange={setFilters}
+                isMobile={isMobile}
+                isOpen={isFilterOpen}
+                onClose={() => setIsFilterOpen(false)}
+              />
+            )}
+
+            {/* Botó de filtres per a mòbil */}
+            {isMobile && (
+              <button
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: '#06682D',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '40px',
+                  padding: '10px 16px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  marginBottom: '16px',
+                  width: '100%',
+                  justifyContent: 'center',
                 }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0px)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
-                }}
+                onClick={() => setIsFilterOpen(true)}
               >
-                <img
-                  src={getImatgeUrl(anuncio.imatgeUrl)}
-                  alt={anuncio.nomMascota}
-                  style={getCardImageStyle()}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = PLACEHOLDER_URL;
+                🔍 Filtres
+                {hasActiveFilters && (
+                  <span style={{
+                    backgroundColor: '#fff',
+                    color: '#06682D',
+                    borderRadius: '12px',
+                    padding: '2px 8px',
+                    fontSize: '12px',
+                  }}>
+                    Actiu
+                  </span>
+                )}
+              </button>
+            )}
+          </div>
+
+          {/* SECCIÓ CARDS - Amb scroll independent */}
+          <div style={{ 
+            flex: 1,
+            overflowY: 'auto',
+            minHeight: 0,
+            marginTop: '16px',
+          }}>
+            <div style={getCardsGridStyle()}>
+              {anunciosFiltrats.map((anuncio) => (
+                <div
+                  key={anuncio.id}
+                  style={styles.card}
+                  onClick={() => openDetailPopup(anuncio)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
                   }}
-                />
-                
-                <div style={styles.cardContent}>
-                  <h3 style={styles.petName}>{anuncio.nomMascota}</h3>
-                  <p style={styles.breedText}>
-                    {anuncio.especie} - {getRacaText(anuncio.raca)}
-                  </p>
-                  <p style={{ ...styles.breedText, fontSize: '11px', color: '#888', marginTop: '4px' }}>
-                    📍 {getUbicacioText(anuncio)}
-                  </p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
-                    <span style={anuncio.estat === 'Perdut' ? styles.statusPerdut : styles.statusTrobat}>
-                      {anuncio.estat}
-                    </span>
-                    <button
-                      style={detailButtonStyle}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        goToAnunciDetail(anuncio.id);
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#055523';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = '#06682D';
-                      }}
-                    >
-                      Veure detall →
-                    </button>
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0px)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                  }}
+                >
+                  <img
+                    src={getImatgeUrl(anuncio.imatgeUrl)}
+                    alt={anuncio.nomMascota}
+                    style={getCardImageStyle()}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = PLACEHOLDER_URL;
+                    }}
+                  />
+                  
+                  <div style={styles.cardContent}>
+                    <h3 style={styles.petName}>{anuncio.nomMascota}</h3>
+                    <p style={styles.breedText}>
+                      {anuncio.especie} - {getRacaText(anuncio.raca)}
+                    </p>
+                    <p style={{ ...styles.breedText, fontSize: '11px', color: '#888', marginTop: '4px' }}>
+                      📍 {getUbicacioText(anuncio)}
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                      <span style={anuncio.estat === 'Perdut' ? styles.statusPerdut : styles.statusTrobat}>
+                        {anuncio.estat}
+                      </span>
+                      <button
+                        style={detailButtonStyle}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          goToAnunciDetail(anuncio.id);
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#055523';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = '#06682D';
+                        }}
+                      >
+                        Veure detall →
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-          
-          {anuncios.length === 0 && (
-            <div style={styles.emptyMessage}>
-              No hi ha anuncis. Sigues el primer en crear-ne un!
+              ))}
             </div>
-          )}
+            
+            {anunciosFiltrats.length === 0 && (
+              <div style={styles.emptyMessage}>
+                No hi ha anuncis que coincideixin amb els filtres seleccionats
+              </div>
+            )}
+          </div>
         </div>
 
         {/* PANELL DRET: MAPA */}
@@ -485,6 +602,16 @@ const MapaPage: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* Modal de filtres per a mòbil */}
+      {isMobile && (
+        <FiltresMapa
+          onFilterChange={setFilters}
+          isMobile={isMobile}
+          isOpen={isFilterOpen}
+          onClose={() => setIsFilterOpen(false)}
+        />
+      )}
 
       {/* Popup flotant de detall ràpid */}
       {showPopup && selectedAnuncio && (
