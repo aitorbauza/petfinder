@@ -32,15 +32,17 @@ interface ChatFloatingButtonProps {
   usuariId: number;
   openConversaId?: number | null;
   openDestinatariId?: number | null;
+  openDestinatariNom?: string | null;
   anunciId?: number | null;
   onClose?: () => void;
-  isInsideMap?: boolean; // 🔥 Nou prop
+  isInsideMap?: boolean;
 }
 
 const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({ 
   usuariId, 
   openConversaId, 
-  openDestinatariId, 
+  openDestinatariId,
+  openDestinatariNom,
   anunciId,
   onClose,
   isInsideMap = false 
@@ -79,12 +81,15 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
   }, [usuariId, selectedConversa, isOpen]);
 
   useEffect(() => {
+
+      console.log('🔍 ChatFloatingButton - openDestinatariId:', openDestinatariId);
+  console.log('🔍 ChatFloatingButton - openDestinatariNom:', openDestinatariNom);
     if (openConversaId && !isOpen) {
       obrirConversaPerId(openConversaId);
     } else if (openDestinatariId && !isOpen) {
-      obrirConversaAmbUsuari(openDestinatariId);
+      obrirConversaAmbUsuari(openDestinatariId, openDestinatariNom);
     }
-  }, [openConversaId, openDestinatariId]);
+  }, [openConversaId, openDestinatariId, openDestinatariNom]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -136,7 +141,10 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
     setLoading(false);
   };
 
-  const obrirConversaAmbUsuari = async (destinatariId: number) => {
+  const obrirConversaAmbUsuari = async (destinatariId: number, destinatariNom?: string | null) => {
+
+    console.log('📞 obrirConversaAmbUsuari - destinatariNom rebut:', destinatariNom);
+
     setLoading(true);
     await carregarConverses();
     const conversaExistent = converses.find(c => c.altreUsuariId === destinatariId);
@@ -145,10 +153,15 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
       setSelectedConversa(conversaExistent);
       await carregarMissatges(conversaExistent.conversaId);
     } else {
+
+      // 🔥 Utilitzar el nom rebut si està disponible
+      const nom = destinatariNom || 'Usuari';
+                console.log('📝 Creant conversa amb nom:', nom);
+
       setSelectedConversa({
         conversaId: 0,
         altreUsuariId: destinatariId,
-        altreUsuariNom: 'Carregant...',
+        altreUsuariNom: nom,
         altreUsuariImatgeUrl: null,
         ultimMissatge: '',
         ultimMissatgeData: new Date().toISOString(),
@@ -219,7 +232,6 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
     return date.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' });
   };
 
-  // 🔥 Seleccionar l'estil del botó segons si està dins del mapa o no
   const buttonStyle = isInsideMap ? getButtonStyleInsideMap() : getButtonStyle();
 
   return (

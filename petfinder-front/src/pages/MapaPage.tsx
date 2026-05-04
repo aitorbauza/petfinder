@@ -96,6 +96,7 @@ const MapaPage: React.FC = () => {
 
   const [openChatConversaId, setOpenChatConversaId] = useState<number | null>(null);
   const [openChatDestinatariId, setOpenChatDestinatariId] = useState<number | null>(null);
+  const [openChatDestinatariNom, setOpenChatDestinatariNom] = useState<string | null>(null);
   const [openChatAnunciId, setOpenChatAnunciId] = useState<number | null>(null);
 
   // Estat dels filtres
@@ -126,6 +127,7 @@ const MapaPage: React.FC = () => {
 
   useEffect(() => {
     if (isFirstRender.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       carregarUbicacionsActives();
       isFirstRender.current = false;
     }
@@ -221,20 +223,37 @@ const MapaPage: React.FC = () => {
     return result;
   }, [anunciosFiltrats, getPosicioAnunci]);
 
-  // Efecte per rebre l'estat de navegació del xat
+  // 🔥 Efecte per rebre l'estat de navegació del xat (amb nom del destinatari)
   useEffect(() => {
     if (hasProcessedState.current) return;
     
     if (location.state && location.state.openChat && location.state.destinatariId) {
       hasProcessedState.current = true;
       
-      setTimeout(() => {
-        setOpenChatDestinatariId(location.state.destinatariId);
-        setOpenChatAnunciId(location.state.anunciId || null);
-        navigate('/mapa', { replace: true, state: {} });
-      }, 0);
+      const destinatariId = location.state.destinatariId;
+      const destinatariNom = location.state.destinatariNom || null;
+      const anunciId = location.state.anunciId || null;
+      
+      console.log('📥 Map rep estat del xat:', { destinatariId, destinatariNom });
+      
+      // Establir els estats
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOpenChatDestinatariId(destinatariId);
+      setOpenChatDestinatariNom(destinatariNom);
+      setOpenChatAnunciId(anunciId);
+      
+      // Netejar l'estat de navegació
+      navigate('/mapa', { replace: true, state: {} });
     }
   }, [location, navigate]);
+
+  // 🔥 Efecte per obrir el xat automàticament quan es reben les dades
+  useEffect(() => {
+    if (openChatDestinatariId && openChatDestinatariNom !== undefined && !openChatConversaId) {
+      console.log('🚀 Preparat per obrir xat amb:', openChatDestinatariNom);
+      // El ChatFloatingButton obrirà automàticament el xat gràcies al prop openDestinatariId
+    }
+  }, [openChatDestinatariId, openChatDestinatariNom, openChatConversaId]);
 
   useEffect(() => {
     return () => {
@@ -657,15 +676,19 @@ const MapaPage: React.FC = () => {
             ))}
           </MapContainer>
 
+          {/* 🔥 Botó flotant del xat - amb suport per nom del destinatari */}
           <ChatFloatingButton 
+            key={`chat-${openChatDestinatariId}-${openChatDestinatariNom}`}
             usuariId={user?.usuariId || 0}
             openConversaId={openChatConversaId}
             openDestinatariId={openChatDestinatariId}
+            openDestinatariNom={openChatDestinatariNom}
             anunciId={openChatAnunciId}
             isInsideMap={true}
             onClose={() => {
               setOpenChatConversaId(null);
               setOpenChatDestinatariId(null);
+              setOpenChatDestinatariNom(null);
               setOpenChatAnunciId(null);
             }}
           />

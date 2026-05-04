@@ -51,3 +51,7 @@ export const eliminarImatgePerfil = async (usuariId: number): Promise<void> => {
     throw new Error(error.response?.data?.error || 'Error eliminant la imatge');
   }
 };
+
+export const obtenirUsuariPerId = (usuariId: number) => {
+  return axios.get(`${API_URL}/${usuariId}`);
+};

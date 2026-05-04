@@ -87,17 +87,25 @@ const DetallAnunciPage: React.FC = () => {
 
   // Funció per obrir el xat des del detall
   const handleOpenChat = () => {
-    if (!anunci) return;
-    
-    // Navegar al mapa amb l'estat per obrir el xat
-    navigate('/mapa', { 
-      state: { 
-        openChat: true, 
-        destinatariId: anunci.usuariId,
-        anunciId: anunci.id 
-      } 
-    });
-  };
+  if (!anunci) return;
+  
+  // 🔥 Assegurar que el nom no sigui null o undefined
+  const nom = anunci.usuariNom || 'Usuari';
+  
+  console.log('📤 Navegant a xat amb:', { 
+    destinatariId: anunci.usuariId, 
+    destinatariNom: nom 
+  });
+  
+  navigate('/mapa', { 
+    state: { 
+      openChat: true, 
+      destinatariId: anunci.usuariId,
+      destinatariNom: nom,
+      anunciId: anunci.id 
+    } 
+  });
+};
 
   if (loading) {
     return (

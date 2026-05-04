@@ -85,4 +85,18 @@ public class UsuariController {
             return ResponseEntity.status(500).body(Map.of("error", "Error eliminant la imatge: " + e.getMessage()));
         }
     }
+
+    @GetMapping("/{usuariId}")
+    public ResponseEntity<?> obtenirUsuariPerId(@PathVariable Long usuariId) {
+        try {
+            Usuari usuari = usuariService.obtenirUsuariPerId(usuariId);
+            return ResponseEntity.ok(Map.of(
+                    "usuariId", usuari.getUsuariId(),
+                    "nom", usuari.getNom(),
+                    "imatgeUrl", usuari.getImatgeUrl()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+        }
+    }
 }

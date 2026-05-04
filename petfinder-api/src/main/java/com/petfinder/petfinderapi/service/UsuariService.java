@@ -1,6 +1,7 @@
 package com.petfinder.petfinderapi.service;
 
 import com.petfinder.petfinderapi.dto.request.PostUsuariDTO;
+import com.petfinder.petfinderapi.exception.BusinessException;
 import com.petfinder.petfinderapi.model.Usuari;
 import com.petfinder.petfinderapi.repository.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -97,6 +98,11 @@ public class UsuariService {
         }
 
         return usuariRepository.save(usuari);
+    }
+
+    public Usuari obtenirUsuariPerId(Long usuariId) {
+        return usuariRepository.findById(usuariId)
+                .orElseThrow(() -> new BusinessException("Usuari no trobat"));
     }
 
 }

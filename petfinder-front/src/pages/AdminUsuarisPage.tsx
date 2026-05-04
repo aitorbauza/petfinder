@@ -5,7 +5,7 @@ import { obtenirTotsElsUsuaris, eliminarUsuariAdmin, editarUsuariAdmin } from '.
 import Header from '../components/Header';
 import AdminPagination from '../components/AdminPagination';
 import AdminDeleteModal from '../components/AdminDeleteModal';
-import { styles, getItemsPerPage, mobileStyles } from '../styles/adminStyles';
+import { styles, mobileStyles } from '../styles/adminStyles';
 
 const API_URL = 'http://localhost:9090';
 
