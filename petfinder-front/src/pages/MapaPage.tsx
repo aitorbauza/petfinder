@@ -10,7 +10,7 @@ import ChatFloatingButton from '../components/ChatFloatingButton';
 import { UserContext } from '../context/UserContext';
 import FiltresMapa, { type Filters } from '../components/FiltresMapa';
 import { EspecieEnum } from '../enums/EspecieEnum';
-import type { UbicacioTempsReal } from '../types/geolocalitzacio';
+import type { UbicacioTempsReal } from '../interfaces/geolocalitzacio';
 
 // Configuración iconos Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
