@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "missatge")
@@ -27,4 +29,7 @@ public class Missatge {
     @ManyToOne
     @JoinColumn(name = "id_usuari")
     private Usuari usuari;
+
+    @OneToMany(mappedBy = "missatge", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MissatgeLlegit> missatgesLlegits = new ArrayList<>();
 }

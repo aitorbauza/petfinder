@@ -2,7 +2,6 @@ import type { CSSProperties } from 'react';
 
 export const styles: { [key: string]: CSSProperties } = {
   container: {
-    minHeight: '100vh',
     width: '100%',
     display: 'flex',
     flexDirection: 'column',

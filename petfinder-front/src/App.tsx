@@ -8,12 +8,16 @@ import PerfilPage from './pages/PerfilPage';
 import MisAnunciosPage from './pages/MisAnunciosPage';
 import EditarAnuncioPage from './pages/EditarAnuncioPage';
 import DetallAnunciPage from './pages/DetallAnunciPage';
+import AdminUsuarisPage from './pages/AdminUsuarisPage';
+import AdminAnuncisPage from './pages/AdminAnuncisPage';
+import AdminEditarAnuncioPage from './pages/AdminEditarAnuncisPage';
 
 function App() {
   return (
     <UserProvider>
       <BrowserRouter>
         <Routes>
+
           {/* Redirige raíz al mapa */}
           <Route path="/" element={<Navigate to="/mapa" replace />} />
 
@@ -28,6 +32,12 @@ function App() {
           <Route path="/mis-anuncios" element={<MisAnunciosPage />} />
           <Route path="/editar-anunci/:id" element={<EditarAnuncioPage />} />
           <Route path="/anunci/:id" element={<DetallAnunciPage />} />
+
+          {/* Admin */}
+          <Route path="/admin/anuncis" element={<AdminAnuncisPage />} />
+          <Route path="/admin/usuaris" element={<AdminUsuarisPage />} />
+          <Route path="/admin/editar-anunci/:id" element={<AdminEditarAnuncioPage />} />
+
         </Routes>
       </BrowserRouter>
     </UserProvider>

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 import { actualitzarUsuari, pujarImatgePerfil, eliminarImatgePerfil } from '../services/userService';
@@ -34,17 +34,18 @@ const PerfilPage: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // 🔥 Comprovar si l'usuari és admin
+  const isAdmin = user?.rol === 'ADMIN';
+
   useEffect(() => {
     if (!user) {
       navigate('/login');
     } else {
-      // Carregar valors originals
       setOriginalNom(user.nom || '');
       setOriginalTelefon(user.telefon || '');
       setOriginalImatgeUrl(user.imatgeUrl || null);
       setEmail(user.email || '');
       
-      // Inicialitzar valors editats
       setEditNom(user.nom || '');
       setEditTelefon(user.telefon || '');
       setEditImatgeFile(null);
@@ -67,6 +68,15 @@ const PerfilPage: React.FC = () => {
 
   const handleMyAnuncis = () => {
     navigate('/mis-anuncios');
+  };
+
+  // 🔥 Navegació per a admin
+  const handleAllAnuncis = () => {
+    navigate('/admin/anuncis');
+  };
+
+  const handleAllUsuaris = () => {
+    navigate('/admin/usuaris');
   };
 
   const getInitial = () => {
@@ -365,11 +375,9 @@ const PerfilPage: React.FC = () => {
             </div>
           )}
 
-          {/* 🔥 SECCIÓ D'EDICIÓ AMB TÍTOLS ALINEATS */}
           <div style={styles.infoContainer}>
             {isEditing ? (
               <>
-                {/* Nom complet */}
                 <div style={styles.inputGroup}>
                   <label style={styles.label}>Nom complet</label>
                   <input
@@ -380,14 +388,12 @@ const PerfilPage: React.FC = () => {
                   />
                 </div>
 
-                {/* Email (només lectura) */}
-                <div style={styles.inputGroup}>
+                <div style={styles.readonlyGroup}>
                   <label style={styles.label}>Email</label>
                   <div style={styles.readonlyValue}>{email}</div>
                   <p style={styles.hint}>L'email no es pot modificar</p>
                 </div>
 
-                {/* Telèfon */}
                 <div style={styles.inputGroup}>
                   <label style={styles.label}>Telèfon</label>
                   <input
@@ -403,7 +409,7 @@ const PerfilPage: React.FC = () => {
               <>
                 <div style={styles.infoRow}>
                   <span style={styles.infoIcon}>👤</span>
-                  <div style={{ flex: 1 }}>
+                  <div>
                     <p style={styles.infoLabel}>Nom complet</p>
                     <p style={styles.infoValue}>{originalNom || 'No especificat'}</p>
                   </div>
@@ -411,7 +417,7 @@ const PerfilPage: React.FC = () => {
 
                 <div style={styles.infoRow}>
                   <span style={styles.infoIcon}>📧</span>
-                  <div style={{ flex: 1 }}>
+                  <div>
                     <p style={styles.infoLabel}>Email</p>
                     <p style={styles.infoValue}>{email || 'No especificat'}</p>
                   </div>
@@ -419,7 +425,7 @@ const PerfilPage: React.FC = () => {
 
                 <div style={styles.infoRow}>
                   <span style={styles.infoIcon}>📞</span>
-                  <div style={{ flex: 1 }}>
+                  <div>
                     <p style={styles.infoLabel}>Telèfon</p>
                     <p style={styles.infoValue}>{originalTelefon || 'No especificat'}</p>
                   </div>
@@ -439,14 +445,14 @@ const PerfilPage: React.FC = () => {
                   onClick={handleSave}
                   disabled={loading || pujantImatge || (!hasChanges)}
                 >
-                  {loading ? 'Guardant...' : 'Guardar canvis'}
+                  {loading ? 'Guardant...' : '💾 Guardar canvis'}
                 </button>
                 <button 
                   style={styles.cancelButton}
                   onClick={handleCancel}
                   disabled={loading}
                 >
-                  Cancel·lar
+                  ❌ Cancel·lar
                 </button>
               </>
             ) : (
@@ -455,19 +461,38 @@ const PerfilPage: React.FC = () => {
                   style={styles.editButton}
                   onClick={() => setIsEditing(true)}
                 >
-                  EDITAR PERFIL
+                  ✏️ Editar perfil
                 </button>
+                
+                {/* 🔥 BOTONS PER A ADMIN */}
+                {isAdmin && (
+                  <>
+                    <button 
+                      style={styles.adminButton}
+                      onClick={handleAllAnuncis}
+                    >
+                      📋 VEURE ANUNCIS
+                    </button>
+                    <button 
+                      style={styles.adminButton}
+                      onClick={handleAllUsuaris}
+                    >
+                      👥 VEURE USUARIS
+                    </button>
+                  </>
+                )}
+                
                 <button 
                   style={styles.myAnuncisButton}
                   onClick={handleMyAnuncis}
                 >
-                  ELS MEUS ANUNCIS
+                  📋 Els meus anuncis
                 </button>
                 <button 
                   style={styles.logoutButton}
                   onClick={handleLogout}
                 >
-                  TANCAR SESSIÓ
+                  🚪 Tancar Sessió
                 </button>
               </>
             )}
