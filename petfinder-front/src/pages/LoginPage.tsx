@@ -17,7 +17,7 @@ const LoginPage: React.FC = () => {
     setError('');
 
     if (!email || !password) {
-      setError('Email y contraseña son obligatorios');
+      setError('Email i contrassenya són obligatoris');
       return;
     }
 
@@ -27,7 +27,7 @@ const LoginPage: React.FC = () => {
       setUser(res.data);     // setUser ya guarda en localStorage automáticamente
       navigate('/mapa');
     } catch (err: any) {
-      setError('Credenciales inválidas');
+      setError('Credencials invàlides');
     } finally {
       setLoading(false);
     }
@@ -40,7 +40,7 @@ const LoginPage: React.FC = () => {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.title}>Iniciar sesión</h2>
+        <h2 style={styles.title}>Iniciar Sessió</h2>
 
         <input
           style={styles.input}
@@ -54,20 +54,20 @@ const LoginPage: React.FC = () => {
         <input
           style={styles.input}
           type="password"
-          placeholder="Contraseña"
+          placeholder="Contrassenya"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           onKeyDown={handleKeyDown}
         />
 
         <button style={styles.button} onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Entrando...' : 'Entrar'}
+          {loading ? 'Entrant...' : 'Entrar'}
         </button>
 
         <p style={styles.switchText}>
-          ¿No tienes cuenta?{' '}
+          ¿No tens compte?{' '}
           <Link to="/register" style={styles.link}>
-            Regístrate
+            Registra't!
           </Link>
         </p>
 

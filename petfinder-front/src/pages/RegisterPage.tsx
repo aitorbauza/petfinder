@@ -81,7 +81,7 @@ const RegisterPage: React.FC = () => {
     setError('');
 
     if (!nom || !email || !password || !telefon) {
-      setError('Todos los campos son obligatorios');
+      setError('Tots els camps són obligatoris');
       return;
     }
 
@@ -109,7 +109,7 @@ const RegisterPage: React.FC = () => {
       navigate('/login', { state: { registered: true } });
     } catch (err: any) {
       console.error('Error registrant usuari:', err);
-      setError('Error al registrar el usuario. El email o el telefono ya pueden estar en uso.');
+      setError("Error en registrar l'usuari. L'email o el telèfon ja poden estar en ús.");
     } finally {
       setLoading(false);
       setPujantImatge(false);
@@ -145,7 +145,7 @@ const RegisterPage: React.FC = () => {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.title}>Registrarse</h2>
+        <h2 style={styles.title}>Registrar-se</h2>
 
         <div
           style={circularDragDropStyle}
@@ -174,7 +174,7 @@ const RegisterPage: React.FC = () => {
         <input
           style={styles.input}
           type="text"
-          placeholder="Nombre"
+          placeholder="Nom"
           value={nom}
           onChange={(e) => setNom(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -183,7 +183,7 @@ const RegisterPage: React.FC = () => {
         <input
           style={styles.input}
           type="tel"
-          placeholder="Teléfono"
+          placeholder="Telèfon"
           value={telefon}
           onChange={(e) => setTelefon(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -201,20 +201,20 @@ const RegisterPage: React.FC = () => {
         <input
           style={styles.input}
           type="password"
-          placeholder="Contraseña"
+          placeholder="Contrassenya"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           onKeyDown={handleKeyDown}
         />
 
         <button style={styles.button} onClick={handleSubmit} disabled={loading}>
-          {loading ? (pujantImatge ? 'Guardant imatge...' : 'Registrando...') : 'Registrarse'}
+          {loading ? (pujantImatge ? 'Guardant imatge...' : 'Registrant...') : 'Registrar-se'}
         </button>
 
         <p style={styles.switchText}>
-          ¿Ya tienes cuenta?{' '}
+          ¿Ja tens compte?{' '}
           <Link to="/login" style={styles.link}>
-            Inicia sesión
+            Inicia sessió!
           </Link>
         </p>
 

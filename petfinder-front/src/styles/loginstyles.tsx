@@ -9,7 +9,8 @@ export const styles: { [key: string]: CSSProperties } = {
     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b8d0b8' stroke-width='0.5'%3E%3Cpath d='M12 2L15 7H9L12 2Z'/%3E%3Cpath d='M5 15L2 12L5 9L8 12L5 15Z'/%3E%3Cpath d='M19 15L22 12L19 9L16 12L19 15Z'/%3E%3C/svg%3E")`,
     backgroundRepeat: 'repeat',
     backgroundSize: '40px',
-    backgroundColor: '#e8f0e8',    
+    backgroundColor: '#e8f0e8',  
+    fontStyle : 'italic',  
   },
 
   card: {

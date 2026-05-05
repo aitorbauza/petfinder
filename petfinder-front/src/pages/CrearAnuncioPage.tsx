@@ -350,14 +350,14 @@ const CrearAnuncioPage: React.FC = () => {
 
           <input
             style={{ ...styles.input, maxWidth: '100%' }}
-            placeholder="Raza (opcional)"
+            placeholder="Raça (opcional)"
             value={raca}
             onChange={(e) => setRaca(e.target.value)}
           />
           
           <input
             style={{ ...styles.input, maxWidth: '100%' }}
-            placeholder="Descripción"
+            placeholder="Descripció"
             value={descripcio}
             onChange={(e) => setDescripcio(e.target.value)}
           />
@@ -468,7 +468,7 @@ const CrearAnuncioPage: React.FC = () => {
 
           <input
             style={{ ...styles.input, maxWidth: '100%' }}
-            placeholder="Nombre Mascota"
+            placeholder="Nom de la Mascota"
             value={nomMascota}
             onChange={(e) => setNomMascota(e.target.value)}
           />
@@ -482,7 +482,7 @@ const CrearAnuncioPage: React.FC = () => {
               setEspecieId(Number(value) as EspecieEnumType);
             }}
           >
-            <option value="">Selecciona especie</option>
+            <option value="">Selecciona l'espècie</option>
             {EspeciesOptions.map((op) => (
               <option key={op.id} value={op.id}>
                 {op.label}
@@ -492,14 +492,14 @@ const CrearAnuncioPage: React.FC = () => {
 
           <input
             style={{ ...styles.input, maxWidth: '100%' }}
-            placeholder="Raza (opcional)"
+            placeholder="Raça (opcional)"
             value={raca}
             onChange={(e) => setRaca(e.target.value)}
           />
           
           <input
             style={{ ...styles.input, maxWidth: '100%' }}
-            placeholder="Descripción"
+            placeholder="Descripció"
             value={descripcio}
             onChange={(e) => setDescripcio(e.target.value)}
           />
