@@ -52,9 +52,6 @@ const DetallAnunciPage: React.FC = () => {
     try {
       setLoading(true);
       const response = await obtenirAnunciPerId(Number(id));
-      console.log('📢 Anunci rebut:', response.data);
-      console.log('👤 Usuari loguejat:', user?.usuariId);
-      console.log('👤 Propietari anunci:', response.data.usuariId);
       setAnunci(response.data);
     } catch (error) {
       console.error('Error carregant anunci:', error);
@@ -91,11 +88,6 @@ const DetallAnunciPage: React.FC = () => {
   if (!anunci) return;
   
   const nom = anunci.usuariNom || 'Usuari';
-  
-  console.log('📤 Navegant a xat amb:', { 
-    destinatariId: anunci.usuariId, 
-    destinatariNom: nom 
-  });
   
   // S'obri el xat en la pantala del mapa
   navigate('/mapa', { 

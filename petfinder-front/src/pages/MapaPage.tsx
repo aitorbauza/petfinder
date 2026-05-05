@@ -227,9 +227,7 @@ const MapaPage: React.FC = () => {
       const destinatariId = location.state.destinatariId;
       const destinatariNom = location.state.destinatariNom || null;
       const anunciId = location.state.anunciId || null;
-      
-      console.log('📥 Map rep estat del xat:', { destinatariId, destinatariNom });
-      
+            
       // Establir els estats
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpenChatDestinatariId(destinatariId);

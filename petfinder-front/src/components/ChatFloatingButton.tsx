@@ -145,13 +145,11 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
       const conversaExistent = conversesActualitzades.find(c => c.altreUsuariId === destinatariId);
       
       if (conversaExistent) {
-        console.log('✅ Conversa existent trobada:', conversaExistent);
         setSelectedConversa(conversaExistent);
         const missatgesResponse = await obtenirMissatges(conversaExistent.conversaId, usuariId);
         setMissatges(missatgesResponse.data);
         await carregarNoLlegits();
       } else {
-        console.log('📝 No existeix conversa, creant nova');
         const nom = destinatariNom || 'Usuari';
         setSelectedConversa({
           conversaId: 0,
