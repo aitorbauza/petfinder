@@ -491,7 +491,7 @@ const AdminEditarAnuncioPage: React.FC = () => {
               style={{ width: '18px', height: '18px', cursor: 'pointer' }}
             />
             <label htmlFor="teGeolocalitzacio" style={{ cursor: 'pointer', fontWeight: 500 }}>
-              📡 Disposa de geolocalització en temps real (microchip GPS)
+              Disposa de geolocalització en temps real (microchip GPS)
             </label>
           </div>
 
@@ -557,10 +557,10 @@ const AdminEditarAnuncioPage: React.FC = () => {
 
           <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
             <button onClick={handleSave} disabled={saving} style={styles.button}>
-              {saving ? 'Guardant...' : '💾 Guardar canvis'}
+              {saving ? 'Guardant...' : 'Guardar canvis'}
             </button>
             <button onClick={handleCancel} style={{ ...styles.button, background: '#666' }}>
-              ❌ Cancel·lar
+              Cancel·lar
             </button>
           </div>
         </div>

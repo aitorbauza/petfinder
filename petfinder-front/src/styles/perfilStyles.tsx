@@ -246,7 +246,7 @@ export const styles: { [key: string]: CSSProperties } = {
     padding: '14px',
     borderRadius: '40px',
     border: 'none',
-    background: '#2196F3',
+    background: '#000000c3',
     color: '#fff',
     fontSize: '16px',
     fontWeight: 600,

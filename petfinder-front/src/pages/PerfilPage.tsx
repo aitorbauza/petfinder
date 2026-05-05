@@ -447,24 +447,26 @@ const PerfilPage: React.FC = () => {
                   onClick={handleSave}
                   disabled={loading || pujantImatge || (!hasChanges)}
                 >
-                  {loading ? 'Guardant...' : '💾 Guardar canvis'}
+                  {loading ? 'Guardant...' : 'Guardar canvis'}
                 </button>
                 <button 
                   style={styles.cancelButton}
                   onClick={handleCancel}
                   disabled={loading}
                 >
-                  ❌ Cancel·lar
+                  Cancel·lar
                 </button>
               </>
             ) : (
               <>
-                <button 
-                  style={styles.editButton}
-                  onClick={() => setIsEditing(true)}
-                >
-                  ✏️ Editar perfil
-                </button>
+                {!isAdmin && (
+                  <button 
+                    style={styles.editButton}
+                    onClick={() => setIsEditing(true)}
+                  >
+                    Editar perfil
+                  </button>
+                )}
                 
                 {/* ADMIN */}
                 {isAdmin && (
@@ -473,28 +475,30 @@ const PerfilPage: React.FC = () => {
                       style={styles.adminButton}
                       onClick={handleAllAnuncis}
                     >
-                      📋 VEURE ANUNCIS
+                      Veure tots els anuncis
                     </button>
                     <button 
                       style={styles.adminButton}
                       onClick={handleAllUsuaris}
                     >
-                      👥 VEURE USUARIS
+                      Veure tots els usuaris
                     </button>
                   </>
                 )}
-                
-                <button 
-                  style={styles.myAnuncisButton}
-                  onClick={handleMyAnuncis}
-                >
-                  📋 Els meus anuncis
-                </button>
+                {!isAdmin && (
+                  <button 
+                    style={styles.myAnuncisButton}
+                    onClick={handleMyAnuncis}
+                  >
+                    Els meus anuncis
+                  </button>
+                )}
+
                 <button 
                   style={styles.logoutButton}
                   onClick={handleLogout}
                 >
-                  🚪 Tancar Sessió
+                  Tancar Sessió
                 </button>
               </>
             )}
