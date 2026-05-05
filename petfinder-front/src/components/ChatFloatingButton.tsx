@@ -1,30 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { obtenirMissatges, enviarMissatge, obtenirMissatgesNoLlegits, type ConversaDTO, type MissatgeDTO, obtenirConverses } from '../services/chatService';
-import {
-  getBadgeNoLlegitsStyle,
-  getButtonStyle,
-  getButtonStyleInsideMap,
-  getChatAreaStyle,
-  getCloseButtonStyle,
-  getConversaAvatarImgStyle,
-  getConversaAvatarStyle,
-  getConversaInfoStyle,
-  getConversaItemStyle,
-  getConversaNomStyle,
-  getConversaUltimMissatgeStyle,
-  getConversesListStyle,
-  getInputContainerStyle,
-  getInputStyle,
-  getMessageBubbleStyle,
-  getMessagesContainerStyle,
-  getMessageTimeStyle,
-  getNotificationBadgeStyle,
-  getPopupHeaderStyle,
-  getPopupOverlayStyle,
-  getPopupStyle,
-  getPopupTitleStyle,
-  getSendButtonStyle,
-} from '../styles/chatFloatingStyles';
+import { getButtonStyle, getButtonStyleInsideMap, getNotificationBadgeStyle, getPopupOverlayStyle, getPopupStyle, getPopupHeaderStyle, getPopupTitleStyle, getCloseButtonStyle, getConversesListStyle, getConversaItemStyle, getConversaAvatarStyle, getConversaAvatarImgStyle, getConversaInfoStyle, getConversaNomStyle, getConversaUltimMissatgeStyle, getBadgeNoLlegitsStyle, getChatAreaStyle, getMessagesContainerStyle, getMessageBubbleStyle, getMessageTimeStyle, getInputContainerStyle, getInputStyle, getSendButtonStyle } from '../styles/chatFloatingStyles';
 
 const API_URL = 'http://localhost:9090';
 
@@ -58,6 +34,10 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const isOpeningChat = useRef(false);
+  const hasOpenedChat = useRef(false);
+
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
@@ -82,14 +62,19 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
   }, [usuariId, selectedConversa, isOpen]);
 
   useEffect(() => {
-
-      console.log('🔍 ChatFloatingButton - openDestinatariId:', openDestinatariId);
-  console.log('🔍 ChatFloatingButton - openDestinatariNom:', openDestinatariNom);
-    if (openConversaId && !isOpen) {
-      obrirConversaPerId(openConversaId);
-    } else if (openDestinatariId && !isOpen) {
-      obrirConversaAmbUsuari(openDestinatariId, openDestinatariNom);
-    }
+    const obrirChat = async () => {
+      if (hasOpenedChat.current) return;
+      
+      if (openConversaId && !isOpen) {
+        hasOpenedChat.current = true;
+        await obrirConversaPerId(openConversaId);
+      } else if (openDestinatariId && !isOpen) {
+        hasOpenedChat.current = true;
+        await obrirConversaAmbUsuari(openDestinatariId, openDestinatariNom);
+      }
+    };
+    
+    obrirChat();
   }, [openConversaId, openDestinatariId, openDestinatariNom]);
 
   // Desplaçar-se al final dels missatges quan canvien
@@ -145,34 +130,50 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
 
   // Obre conversa amb un usuari per primera vegada, utilitzant el nom rebut de l'anunci
   const obrirConversaAmbUsuari = async (destinatariId: number, destinatariNom?: string | null) => {
-
-    console.log('📞 obrirConversaAmbUsuari - destinatariNom rebut:', destinatariNom);
-
-    setLoading(true);
-    await carregarConverses();
-    const conversaExistent = converses.find(c => c.altreUsuariId === destinatariId);
+    if (isOpeningChat.current) return;
+    isOpeningChat.current = true;
     
-    if (conversaExistent) {
-      setSelectedConversa(conversaExistent);
-      await carregarMissatges(conversaExistent.conversaId);
-    } else {
-
-      // Utilitzar el nom rebut si està disponible
-      const nom = destinatariNom || 'Usuari';
-
-      setSelectedConversa({
-        conversaId: 0,
-        altreUsuariId: destinatariId,
-        altreUsuariNom: nom,
-        altreUsuariImatgeUrl: null,
-        ultimMissatge: '',
-        ultimMissatgeData: new Date().toISOString(),
-        missatgesNoLlegits: 0
-      });
-      setMissatges([]);
+    setLoading(true);
+    
+    // Si ja existeixen missatges, els carreguem
+    try {
+      const response = await obtenirConverses(usuariId);
+      const conversesActualitzades = response.data;
+      setConverses(conversesActualitzades);
+      
+      // Buscar conversa existent a les converses acabades d'obtenir
+      const conversaExistent = conversesActualitzades.find(c => c.altreUsuariId === destinatariId);
+      
+      if (conversaExistent) {
+        console.log('✅ Conversa existent trobada:', conversaExistent);
+        setSelectedConversa(conversaExistent);
+        const missatgesResponse = await obtenirMissatges(conversaExistent.conversaId, usuariId);
+        setMissatges(missatgesResponse.data);
+        await carregarNoLlegits();
+      } else {
+        console.log('📝 No existeix conversa, creant nova');
+        const nom = destinatariNom || 'Usuari';
+        setSelectedConversa({
+          conversaId: 0,
+          altreUsuariId: destinatariId,
+          altreUsuariNom: nom,
+          altreUsuariImatgeUrl: null,
+          ultimMissatge: '',
+          ultimMissatgeData: new Date().toISOString(),
+          missatgesNoLlegits: 0
+        });
+        setMissatges([]);
+      }
+      
+      setIsOpen(true);
+    } catch (error) {
+      console.error('Error obrint conversa:', error);
+    } finally {
+      setLoading(false);
+      setTimeout(() => {
+        isOpeningChat.current = false;
+      }, 500);
     }
-    setIsOpen(true);
-    setLoading(false);
   };
 
   const handleEnviarMissatge = async () => {
