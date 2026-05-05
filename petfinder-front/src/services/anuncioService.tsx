@@ -15,6 +15,7 @@ export interface PostAnunciDTO {
   provincia: string;
   teGeolocalitzacio: boolean;
   microchipId: string | null;
+  eliminarImatge?: boolean;
 }
 
 export interface GetAnunciDTO {

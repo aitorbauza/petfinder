@@ -21,4 +21,5 @@ public class PostAnunciDTO {
     private String provincia;
     private Boolean teGeolocalitzacio;
     private String microchipId;
+    private Boolean eliminarImatge;
 }

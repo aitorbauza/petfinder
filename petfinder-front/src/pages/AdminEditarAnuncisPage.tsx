@@ -85,6 +85,18 @@ const AdminEditarAnuncioPage: React.FC = () => {
   const [ciutat, setCiutat] = useState('');
   const [provincia, setProvincia] = useState('');
   
+  // Store original values for cancel
+  const [originalNom, setOriginalNom] = useState('');
+  const [originalEspecieId, setOriginalEspecieId] = useState<EspecieEnumType | null>(null);
+  const [originalRaca, setOriginalRaca] = useState('');
+  const [originalDescripcio, setOriginalDescripcio] = useState('');
+  const [originalLatitud, setOriginalLatitud] = useState(41.3851);
+  const [originalLongitud, setOriginalLongitud] = useState(2.1734);
+  const [originalEstatId, setOriginalEstatId] = useState(1);
+  const [originalImatgeUrl, setOriginalImatgeUrl] = useState<string | null>(null);
+  const [originalCiutat, setOriginalCiutat] = useState('');
+  const [originalProvincia, setOriginalProvincia] = useState('');
+  
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [pujantImatge, setPujantImatge] = useState(false);
   const [eliminarImatgeEdit, setEliminarImatgeEdit] = useState(false);
@@ -117,12 +129,24 @@ const AdminEditarAnuncioPage: React.FC = () => {
       setEspecieId(anunci.especieId || null);
       setRaca(anunci.raca || '');
       setDescripcio(anunci.descripcio || '');
-      setLatitud(anunci.latitud || 41.3851); // Valor por defecto Barcelona
+      setLatitud(anunci.latitud || 41.3851);
       setLongitud(anunci.longitud || 2.1734);
       setEstatId(anunci.estat === 'Perdut' ? 1 : 2);
       setImatgeUrl(anunci.imatgeUrl || null);
       setCiutat(anunci.ciutat || '');
       setProvincia(anunci.provincia || '');
+      
+      // Set original values for cancel
+      setOriginalNom(anunci.nomMascota || '');
+      setOriginalEspecieId(anunci.especieId || null);
+      setOriginalRaca(anunci.raca || '');
+      setOriginalDescripcio(anunci.descripcio || '');
+      setOriginalLatitud(anunci.latitud || 41.3851);
+      setOriginalLongitud(anunci.longitud || 2.1734);
+      setOriginalEstatId(anunci.estat === 'Perdut' ? 1 : 2);
+      setOriginalImatgeUrl(anunci.imatgeUrl || null);
+      setOriginalCiutat(anunci.ciutat || '');
+      setOriginalProvincia(anunci.provincia || '');
     } catch (error) {
       console.error('Error carregant anunci:', error);
       setError('No s\'ha pogut carregar l\'anunci');
@@ -204,12 +228,34 @@ const AdminEditarAnuncioPage: React.FC = () => {
     setEliminarImatgeEdit(true);
   };
 
+  const getImatgePreview = () => {
+    if (previewUrl) return previewUrl;
+    if (imatgeUrl) {
+      if (imatgeUrl.startsWith('http')) return imatgeUrl;
+      return `http://localhost:9090${imatgeUrl}`;
+    }
+    return null;
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setError('');
     
     try {
-      const anunciData = {
+      let finalImatgeUrl: string | null = originalImatgeUrl;
+      
+      if (eliminarImatgeEdit) {
+        // L'usuari ha demanat eliminar la imatge
+        finalImatgeUrl = null;
+      } else if (previewUrl && imatgeUrl !== originalImatgeUrl) {
+        // S'ha pujat una imatge nova
+        finalImatgeUrl = imatgeUrl;
+      } else {
+        // Conservar la imatge existent
+        finalImatgeUrl = originalImatgeUrl;
+      }
+      
+      const anunciData: any = {
         nomMascota,
         especieId: Number(especieId),
         raca: raca || '',
@@ -217,10 +263,18 @@ const AdminEditarAnuncioPage: React.FC = () => {
         latitud: Number(latitud),
         longitud: Number(longitud),
         estatId: Number(estatId),
-        imatgeUrl: eliminarImatgeEdit ? null : imatgeUrl,
         ciutat,
-        provincia
+        provincia,
       };
+      
+      // NOMÉS afegir imatgeUrl si hi ha canvis
+      if (eliminarImatgeEdit) {
+        anunciData.imatgeUrl = null;
+        anunciData.eliminarImatge = true;
+      } else if (finalImatgeUrl !== originalImatgeUrl && finalImatgeUrl) {
+        anunciData.imatgeUrl = finalImatgeUrl;
+      }
+      // Si no, NO enviem el camp imatgeUrl (el backend conservarà l'existent)
       
       await editarAnunciAdmin(Number(id), anunciData);
       alert('✅ Anunci actualitzat correctament!');
@@ -234,16 +288,26 @@ const AdminEditarAnuncioPage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    navigate('/admin/anuncis');
-  };
-
-  const getImatgePreview = () => {
-    if (previewUrl) return previewUrl;
-    if (imatgeUrl) {
-      if (imatgeUrl.startsWith('http')) return imatgeUrl;
-      return `http://localhost:9090${imatgeUrl}`;
+    // Restore original values
+    setNomMascota(originalNom);
+    setEspecieId(originalEspecieId);
+    setRaca(originalRaca);
+    setDescripcio(originalDescripcio);
+    setLatitud(originalLatitud);
+    setLongitud(originalLongitud);
+    setEstatId(originalEstatId);
+    setImatgeUrl(originalImatgeUrl);
+    setCiutat(originalCiutat);
+    setProvincia(originalProvincia);
+    
+    // Clear preview
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
     }
-    return null;
+    setPreviewUrl(null);
+    setEliminarImatgeEdit(false);
+    
+    navigate('/admin/anuncis');
   };
 
   // TODO -> Moure styles a fitxer d'estils d'admin

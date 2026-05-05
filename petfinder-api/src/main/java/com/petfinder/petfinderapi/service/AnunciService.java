@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
 public class AnunciService {
 
     private static final Logger log = LoggerFactory.getLogger(AnunciService.class);
-    private static final String RACA_PER_DEFECTE = "Sin raza";
-    private static final String DESCRIPCIO_PER_DEFECTE = "Sin descripción";
+    private static final String RACA_PER_DEFECTE = "Sense raça";
+    private static final String DESCRIPCIO_PER_DEFECTE = "Sense descripció";
 
     private final AnunciRepository anunciRepository;
     private final MascotaRepository mascotaRepository;
@@ -102,8 +102,35 @@ public class AnunciService {
         boolean geolocalitzacioJaActiva = mascota.getTeGeolocalitzacio() != null && mascota.getTeGeolocalitzacio();
         boolean geolocalitzacioNovaActiva = dto.getTeGeolocalitzacio() != null && dto.getTeGeolocalitzacio();
 
+        // Actualitzar dades bàsiques de la mascota
         actualitzarDadesMascota(mascota, dto);
-        actualitzarImatgeMascota(mascota, dto);
+
+        // Només actualitzar si hi ha canvis
+        String imatgeExistentUrl = null;
+        boolean teImatgeExistent = teImatges(mascota);
+        if (teImatgeExistent) {
+            imatgeExistentUrl = mascota.getImatges().get(0).getUrl();
+        }
+
+        String imatgeNovaUrl = dto.getImatgeUrl();
+        boolean eliminarImatge = dto.getEliminarImatge() != null && dto.getEliminarImatge();
+
+        // Comprovar si la imatge ha canviat realment
+        boolean imatgeHaCanviat = false;
+
+        if (eliminarImatge && teImatgeExistent) {
+            imatgeHaCanviat = true;
+        } else if (imatgeNovaUrl != null && !imatgeNovaUrl.isEmpty()) {
+            // Si hi ha imatge nova i és diferent de l'existent
+            if (imatgeExistentUrl == null || !imatgeNovaUrl.equals(imatgeExistentUrl)) {
+                imatgeHaCanviat = true;
+            }
+        }
+
+        // NOMÉS actualitzar la imatge si realment ha canviat
+        if (imatgeHaCanviat) {
+            actualitzarImatgeMascota(mascota, dto);
+        }
 
         mascota.setTeGeolocalitzacio(geolocalitzacioNovaActiva);
         mascota.setMicrochipId(dto.getMicrochipId());
@@ -224,9 +251,43 @@ public class AnunciService {
     }
 
     private void actualitzarImatgeMascota(Mascota mascota, PostAnunciDTO dto) {
-        if (dto.getImatgeUrl() != null && !dto.getImatgeUrl().isEmpty()) {
-            eliminarImatgesDeMascota(mascota);
+        // 🔥 Cas 1: L'usuari vol eliminar la imatge
+        if (dto.getEliminarImatge() != null && dto.getEliminarImatge()) {
+            if (teImatges(mascota)) {
+                for (Imatge imatge : mascota.getImatges()) {
+                    try {
+                        fileStorageService.deleteFile(imatge.getUrl());
+                    } catch (Exception e) {
+                        log.error("Error eliminant imatge: {}", imatge.getUrl(), e);
+                    }
+                }
+                imatgeRepository.deleteAll(mascota.getImatges());
+                mascota.getImatges().clear();
+                log.info("Imatges eliminades per a mascota {}", mascota.getMascotaId());
+            }
+            return;
+        }
 
+        // 🔥 Cas 2: L'usuari ha pujat una imatge NOVA (url diferent de l'existent)
+        boolean teImatgeNova = dto.getImatgeUrl() != null && !dto.getImatgeUrl().isEmpty();
+        boolean teImatgeExistent = teImatges(mascota);
+        String imatgeExistentUrl = teImatgeExistent ? mascota.getImatges().get(0).getUrl() : null;
+
+        if (teImatgeNova && !dto.getImatgeUrl().equals(imatgeExistentUrl)) {
+            // Eliminar imatges anteriors
+            if (teImatgeExistent) {
+                for (Imatge imatge : mascota.getImatges()) {
+                    try {
+                        fileStorageService.deleteFile(imatge.getUrl());
+                    } catch (Exception e) {
+                        log.error("Error eliminant imatge antiga: {}", imatge.getUrl(), e);
+                    }
+                }
+                imatgeRepository.deleteAll(mascota.getImatges());
+                mascota.getImatges().clear();
+            }
+
+            // Crear nova imatge
             Imatge novaImatge = new Imatge();
             novaImatge.setUrl(dto.getImatgeUrl());
             novaImatge.setMascota(mascota);
@@ -236,9 +297,10 @@ public class AnunciService {
                 mascota.setImatges(new ArrayList<>());
             }
             mascota.getImatges().add(novaImatge);
-        } else if (dto.getImatgeUrl() == null && teImatges(mascota)) {
-            eliminarImatgesDeMascota(mascota);
+            log.info("Imatge nova guardada per a mascota {}", mascota.getMascotaId());
         }
+
+        // 🔥 Cas 3: No hi ha imatge nova i no s'ha demanat eliminar -> NO FER RES (conservar l'existent)
     }
 
     private void actualitzarDadesAnunci(Anunci anunci, PostAnunciDTO dto, Estat estat) {
