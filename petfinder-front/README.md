@@ -1,73 +1,95 @@
-# React + TypeScript + Vite
+# PetFinder
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+PetFinder és una aplicació web dissenyada per ajudar a trobar mascotes perdudes. Mitjançant un mapa interactiu, els usuaris poden publicar anuncis de mascotes perdudes o trobades, veure la ubicació aproximada, filtrar per espècie o estat i contactar amb els propietaris a través d'un sistema de xat integrat.
 
-Currently, two official plugins are available:
+## Funcionalitats principals
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Registre i inici de sessió d'usuaris
+- Crear, editar i eliminar anuncis de mascotes
+- Mapa interactiu amb Leaflet i OpenStreetMap
+- Filtres de cerca per espècie, estat i geolocalització
+- Xat entre usuaris (només des del detall de l'anunci)
+- Perfil d'usuari amb imatge i dades personals
+- Geolocalització simulada per a mascotes amb microchip GPS
+- Panell d'administració (gestió d'anuncis i usuaris)
+- Disseny responsive (escriptori i mòbil)
 
-## React Compiler
+## Tecnologies utilitzades
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Backend
 
-## Expanding the ESLint configuration
+- Java 17
+- Spring Boot
+- Spring Data JPA
+- PostgreSQL
+- Docker
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Frontend
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- React
+- TypeScript
+- Leaflet (mapes)
+- Axios (peticions HTTP)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Requisits previs
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Java 17 o superior
+- Node.js 18 o superior
+- Docker (recomanat per a la base de dades)
+
+## Instal·lació i execució
+
+### 1. Clonar el repositori
+
+```bash
+git clone https://github.com/aitorbauza/petfinder.git
+cd petfinder
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 2. Configurar la base de dades amb Docker
 ```
+docker run --name petfinder-db \
+  -e POSTGRES_DB=petfinder \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5432:5432 \
+  -d postgres:15
+```
+
+### 3. Executar el backend
+```
+cd petfinder-api
+./mvnw spring-boot:run
+```
+
+#### L'API estarà disponible a: http://localhost:9090
+
+### 4. Executar el frontend
+```
+cd ../petfinder-front
+npm install
+npm run dev
+```
+
+#### L'aplicació estarà disponible a: http://localhost:5173
+
+
+### 5. Estructura del projecte
+
+```text
+petfinder/
+├── petfinder-api/          # Backend (Spring Boot)
+│   ├── src/main/java/      # Codi font del backend
+│   └── src/main/resources/ # Fitxers de configuració
+├── petfinder-front/        # Frontend (React)
+│   ├── src/                # Codi font del frontend
+│   └── public/             # Recursos estàtics
+└── README.md               # Aquest fitxer
+```
+
+## Autor
+
+#### Aitor Bauzá Gómez
+#### GitHub: @aitorbauza
+
+##### Aquest projecte s'ha desenvolupat amb finalitats educatives com a part d'un Treball de Final de Grau.
