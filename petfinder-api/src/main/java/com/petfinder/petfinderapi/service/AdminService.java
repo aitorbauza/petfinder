@@ -41,7 +41,9 @@ public class AdminService {
             ConversaRepository conversaRepository,
             MissatgeRepository missatgeRepository,
             MissatgeLlegitRepository missatgeLlegitRepository,
-            FileStorageService fileStorageService, EspecieRepository especieRepository, EstatRepository estatRepository) {
+            FileStorageService fileStorageService,
+            EspecieRepository especieRepository,
+            EstatRepository estatRepository) {
         this.anunciRepository = anunciRepository;
         this.usuariRepository = usuariRepository;
         this.mascotaRepository = mascotaRepository;
@@ -53,6 +55,8 @@ public class AdminService {
         this.especieRepository = especieRepository;
         this.estatRepository = estatRepository;
     }
+
+    // ==================== ANUNCIS ====================
 
     public List<AnunciAdminDTO> obtenirTotsElsAnuncis() {
         return anunciRepository.findAll().stream()
@@ -90,6 +94,83 @@ public class AdminService {
         }
 
         log.info("Admin ha eliminat l'anunci {}", anunciId);
+    }
+
+    @Transactional
+    public void editarAnunciAdmin(Long anunciId, PostAnunciDTO dto) {
+        Anunci anunci = anunciRepository.findById(anunciId)
+                .orElseThrow(() -> new BusinessException("Anunci no trobat"));
+
+        Mascota mascota = anunci.getMascota();
+
+        // Actualitzar dades bàsiques de la mascota
+        mascota.setNom(dto.getNomMascota());
+        mascota.setRaca(dto.getRaca() != null && !dto.getRaca().isEmpty() ? dto.getRaca() : "Sin raza");
+        mascota.setDescripcio(dto.getDescripcio());
+
+        if (dto.getEspecieId() != null) {
+            Especie especie = especieRepository.findById(dto.getEspecieId())
+                    .orElseThrow(() -> new BusinessException("Especie no trobada"));
+            mascota.setEspecie(especie);
+        }
+
+        mascota.setTeGeolocalitzacio(dto.getTeGeolocalitzacio() != null && dto.getTeGeolocalitzacio());
+        mascota.setMicrochipId(dto.getMicrochipId());
+
+        if (dto.getEliminarImatge() != null && dto.getEliminarImatge()) {
+            // L'usuari vol eliminar la imatge
+            if (mascota.getImatges() != null && !mascota.getImatges().isEmpty()) {
+                for (Imatge imatge : mascota.getImatges()) {
+                    try {
+                        fileStorageService.deleteFile(imatge.getUrl());
+                    } catch (Exception e) {
+                        log.error("Error eliminant imatge: {}", e.getMessage());
+                    }
+                }
+                imatgeRepository.deleteAll(mascota.getImatges());
+                mascota.getImatges().clear();
+            }
+        } else if (dto.getImatgeUrl() != null && !dto.getImatgeUrl().isEmpty()) {
+            // S'ha pujat una imatge nova
+            if (mascota.getImatges() != null && !mascota.getImatges().isEmpty()) {
+                for (Imatge imatge : mascota.getImatges()) {
+                    try {
+                        fileStorageService.deleteFile(imatge.getUrl());
+                    } catch (Exception e) {
+                        log.error("Error eliminant imatge antiga: {}", e.getMessage());
+                    }
+                }
+                imatgeRepository.deleteAll(mascota.getImatges());
+                mascota.getImatges().clear();
+            }
+
+            // Crear nova imatge
+            Imatge novaImatge = new Imatge();
+            novaImatge.setUrl(dto.getImatgeUrl());
+            novaImatge.setMascota(mascota);
+            imatgeRepository.save(novaImatge);
+
+            if (mascota.getImatges() == null) {
+                mascota.setImatges(new ArrayList<>());
+            }
+            mascota.getImatges().add(novaImatge);
+        }
+        // Si no hi ha imatge nova i no s'ha demanat eliminar, conservem l'existent
+
+        mascotaRepository.save(mascota);
+
+        // Actualitzar dades de l'anunci
+        Estat estat = estatRepository.findById(dto.getEstatId())
+                .orElseThrow(() -> new BusinessException("Estat no trobat"));
+
+        anunci.setEstat(estat);
+        anunci.setLatitud(dto.getLatitud());
+        anunci.setLongitud(dto.getLongitud());
+        anunci.setCiutat(dto.getCiutat());
+        anunci.setProvincia(dto.getProvincia());
+
+        anunciRepository.save(anunci);
+        log.info("Admin ha editat l'anunci {}", anunciId);
     }
 
     public List<UsuariAdminDTO> obtenirTotsElsUsuaris() {
@@ -145,65 +226,6 @@ public class AdminService {
     }
 
     @Transactional
-    public void editarAnunciAdmin(Long anunciId, PostAnunciDTO dto) {
-        Anunci anunci = anunciRepository.findById(anunciId)
-                .orElseThrow(() -> new BusinessException("Anunci no trobat"));
-
-        Mascota mascota = anunci.getMascota();
-
-        // Actualitzar dades de la mascota
-        mascota.setNom(dto.getNomMascota());
-        mascota.setRaca(dto.getRaca() != null && !dto.getRaca().isEmpty() ? dto.getRaca() : "Sin raza");
-        mascota.setDescripcio(dto.getDescripcio());
-
-        if (dto.getEspecieId() != null) {
-            Especie especie = especieRepository.findById(dto.getEspecieId())
-                    .orElseThrow(() -> new BusinessException("Especie no trobada"));
-            mascota.setEspecie(especie);
-        }
-
-        // Actualitzar imatge si s'ha pujat una de nova
-        if (dto.getImatgeUrl() != null && !dto.getImatgeUrl().isEmpty()) {
-            if (mascota.getImatges() != null && !mascota.getImatges().isEmpty()) {
-                for (Imatge imatge : mascota.getImatges()) {
-                    try {
-                        fileStorageService.deleteFile(imatge.getUrl());
-                    } catch (Exception e) {
-                        log.error("Error eliminant imatge: {}", e.getMessage());
-                    }
-                }
-                imatgeRepository.deleteAll(mascota.getImatges());
-                mascota.getImatges().clear();
-            }
-
-            Imatge novaImatge = new Imatge();
-            novaImatge.setUrl(dto.getImatgeUrl());
-            novaImatge.setMascota(mascota);
-            imatgeRepository.save(novaImatge);
-
-            if (mascota.getImatges() == null) {
-                mascota.setImatges(new ArrayList<>());
-            }
-            mascota.getImatges().add(novaImatge);
-        }
-
-        mascotaRepository.save(mascota);
-
-        // Actualitzar dades de l'anunci
-        Estat estat = estatRepository.findById(dto.getEstatId())
-                .orElseThrow(() -> new BusinessException("Estat no trobat"));
-
-        anunci.setEstat(estat);
-        anunci.setLatitud(dto.getLatitud());
-        anunci.setLongitud(dto.getLongitud());
-        anunci.setCiutat(dto.getCiutat());
-        anunci.setProvincia(dto.getProvincia());
-
-        anunciRepository.save(anunci);
-        log.info("Admin ha editat l'anunci {}", anunciId);
-    }
-
-    @Transactional
     public void editarUsuari(Long usuariId, Map<String, String> data) {
         Usuari usuari = usuariRepository.findById(usuariId)
                 .orElseThrow(() -> new BusinessException("Usuari no trobat"));
@@ -227,7 +249,7 @@ public class AdminService {
         usuariRepository.save(usuari);
         log.info("Admin ha editat l'usuari {}", usuariId);
     }
-
+    
     private AnunciAdminDTO convertirAnunciADTO(Anunci anunci) {
         AnunciAdminDTO dto = new AnunciAdminDTO();
         dto.setId(anunci.getAnunciId());
@@ -244,6 +266,8 @@ public class AdminService {
         dto.setData(anunci.getData() != null ? anunci.getData().toString() : null);
         dto.setUsuariId(anunci.getMascota().getUsuari().getUsuariId());
         dto.setUsuariNom(anunci.getMascota().getUsuari().getNom());
+        dto.setTeGeolocalitzacio(anunci.getMascota().getTeGeolocalitzacio() != null && anunci.getMascota().getTeGeolocalitzacio());
+        dto.setMicrochipId(anunci.getMascota().getMicrochipId());
 
         if (anunci.getMascota().getImatges() != null && !anunci.getMascota().getImatges().isEmpty()) {
             dto.setImatgeUrl(anunci.getMascota().getImatges().get(0).getUrl());

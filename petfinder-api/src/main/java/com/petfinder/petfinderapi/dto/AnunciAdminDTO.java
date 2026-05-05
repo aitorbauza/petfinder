@@ -19,4 +19,6 @@ public class AnunciAdminDTO {
     private Long usuariId;
     private String usuariNom;
     private String imatgeUrl;
+    private Boolean teGeolocalitzacio;
+    private String microchipId;
 }
