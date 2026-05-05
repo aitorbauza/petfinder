@@ -31,7 +31,7 @@ public class UsuariService {
         usuari.setEmail(dto.getEmail());
         usuari.setTelefon(dto.getTelefon());
         usuari.setRol("USER"); // valor por defecto
-        usuari.setImatgeUrl(dto.getImatgeUrl());  // ← Guardar imatge de perfil
+        usuari.setImatgeUrl(dto.getImatgeUrl());
         String hashedPassword = passwordEncoder.encode(dto.getPassword());
         usuari.setPassword(hashedPassword);
         return usuariRepository.save(usuari);
@@ -50,7 +50,7 @@ public class UsuariService {
             throw new Exception("Credenciales incorrectas");
         }
 
-        return usuari; // Devuelves el usuariId al front
+        return usuari;
     }
 
     public Usuari actualitzarImatgePerfil(Long usuariId, String imatgeUrl) throws Exception {
@@ -71,7 +71,6 @@ public class UsuariService {
                 fileStorageService.deleteFile(usuari.getImatgeUrl());
             } catch (Exception e) {
                 System.err.println("Error eliminant fitxer: " + e.getMessage());
-                // No llencem excepció, només log
             }
         }
 

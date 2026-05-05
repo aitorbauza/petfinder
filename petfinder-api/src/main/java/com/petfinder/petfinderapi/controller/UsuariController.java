@@ -4,7 +4,6 @@ import com.petfinder.petfinderapi.dto.request.PostUsuariDTO;
 import com.petfinder.petfinderapi.model.Usuari;
 import com.petfinder.petfinderapi.service.FileStorageService;
 import com.petfinder.petfinderapi.service.UsuariService;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -49,7 +48,6 @@ public class UsuariController {
                     "usuari", usuari
             ));
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("error", "Error pujant imatge de perfil: " + e.getMessage()));
         }
     }
@@ -81,7 +79,6 @@ public class UsuariController {
                     "usuari", usuari
             ));
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("error", "Error eliminant la imatge: " + e.getMessage()));
         }
     }

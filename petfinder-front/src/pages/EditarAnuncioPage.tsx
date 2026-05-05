@@ -97,11 +97,9 @@ const EditarAnuncioPage: React.FC = () => {
   const [provincia, setProvincia] = useState('');
   const [mascotaId, setMascotaId] = useState<number | null>(null);
   
-  // 🔥 NOUS ESTATS PER A GEOLOCALITZACIÓ
   const [teGeolocalitzacio, setTeGeolocalitzacio] = useState(false);
   const [microchipId, setMicrochipId] = useState<string | null>(null);
   
-  // Image states
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [pujantImatge, setPujantImatge] = useState(false);
   const [eliminarImatgeEdit, setEliminarImatgeEdit] = useState(false);
@@ -109,7 +107,6 @@ const EditarAnuncioPage: React.FC = () => {
   const [obtenintUbicacio, setObtenintUbicacio] = useState(false);
   const [error, setError] = useState('');
 
-  // Store original values for cancel
   const [originalNom, setOriginalNom] = useState('');
   const [originalEspecieId, setOriginalEspecieId] = useState<EspecieEnumType | null>(null);
   const [originalRaca, setOriginalRaca] = useState('');
@@ -120,7 +117,7 @@ const EditarAnuncioPage: React.FC = () => {
   const [originalImatgeUrl, setOriginalImatgeUrl] = useState<string | null>(null);
   const [originalCiutat, setOriginalCiutat] = useState('');
   const [originalProvincia, setOriginalProvincia] = useState('');
-  // 🔥 Valors originals per geolocalització
+
   const [originalTeGeolocalitzacio, setOriginalTeGeolocalitzacio] = useState(false);
   const [originalMicrochipId, setOriginalMicrochipId] = useState<string | null>(null);
 
@@ -146,7 +143,7 @@ const EditarAnuncioPage: React.FC = () => {
       const response = await obtenirAnunciPerId(Number(id));
       const anunci = response.data;
       
-      // Set current values
+      // Dades noves per a l'edició
       setNomMascota(anunci.nomMascota || '');
       setEspecieId(anunci.especieId || null);
       setRaca(anunci.raca || '');
@@ -161,7 +158,7 @@ const EditarAnuncioPage: React.FC = () => {
       setTeGeolocalitzacio(anunci.teGeolocalitzacio === true);
       setMicrochipId(anunci.microchipId || null);
       
-      // Set original values for cancel
+      // Dades originals per a restaurar si es cancel·la l'edició
       setOriginalNom(anunci.nomMascota || '');
       setOriginalEspecieId(anunci.especieId || null);
       setOriginalRaca(anunci.raca || '');
@@ -203,7 +200,7 @@ const EditarAnuncioPage: React.FC = () => {
     obtenirUbicacioPerCoordenades(lat, lng);
   };
 
-  // 🔥 Manejador per activar/desactivar geolocalització
+  // Funcio per gestionar el canvi de l'estat de la geolocalització
   const handleTeGeolocalitzacioChange = (checked: boolean) => {
     setTeGeolocalitzacio(checked);
     if (checked && !microchipId) {
@@ -271,7 +268,7 @@ const EditarAnuncioPage: React.FC = () => {
     setSaving(true);
     setError('');
     
-    // 🔥 Comprovar si s'ha activat la geolocalització ara
+    // Comprovar si s'ha activat la geolocalització ara
     const geolocalitzacioActivadaAra = teGeolocalitzacio && !originalTeGeolocalitzacio;
     
     try {
@@ -286,14 +283,13 @@ const EditarAnuncioPage: React.FC = () => {
         imatgeUrl: eliminarImatgeEdit ? null : imatgeUrl,
         ciutat,
         provincia,
-        // 🔥 Enviar dades de geolocalització
         teGeolocalitzacio: teGeolocalitzacio,
         microchipId: teGeolocalitzacio ? microchipId : null,
       };
       
       await actualitzarAnunci(Number(id), user.usuariId, anunciData);
       
-      // 🔥 Si s'ha activat la geolocalització, guardar la ubicació inicial
+      // Si s'ha activat la geolocalització ara, guardar la ubicació inicial de la mascota
       if (geolocalitzacioActivadaAra && mascotaId) {
         try {
           await axios.post('http://localhost:9090/api/ubicacions/inicialitzar', null, {
@@ -320,7 +316,6 @@ const EditarAnuncioPage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    // Restore original values
     setNomMascota(originalNom);
     setEspecieId(originalEspecieId);
     setRaca(originalRaca);
@@ -331,11 +326,9 @@ const EditarAnuncioPage: React.FC = () => {
     setImatgeUrl(originalImatgeUrl);
     setCiutat(originalCiutat);
     setProvincia(originalProvincia);
-    // 🔥 Restaurar valors de geolocalització
     setTeGeolocalitzacio(originalTeGeolocalitzacio);
     setMicrochipId(originalMicrochipId);
     
-    // Clear preview
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
@@ -354,7 +347,7 @@ const EditarAnuncioPage: React.FC = () => {
     return null;
   };
 
-  // Estils per als camps de geolocalització
+  // TODO -> Moure estils a un fitxer separat
   const checkboxContainerStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
@@ -470,7 +463,6 @@ const EditarAnuncioPage: React.FC = () => {
             <option value={2}>Trobat</option>
           </select>
 
-          {/* 🔥 CHECKBOX GEOLOCALITZACIÓ */}
           <div style={checkboxContainerStyle}>
             <input
               type="checkbox"
@@ -484,7 +476,6 @@ const EditarAnuncioPage: React.FC = () => {
             </label>
           </div>
 
-          {/* 🔥 MICROCHIP ID (només si té geolocalització) */}
           {teGeolocalitzacio && (
             <div style={microchipContainerStyle}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
@@ -503,7 +494,6 @@ const EditarAnuncioPage: React.FC = () => {
             </div>
           )}
 
-          {/* Imatge */}
           <div>
             <label style={styles.label}>Imatge de la mascota</label>
             <div
@@ -554,7 +544,6 @@ const EditarAnuncioPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Mapa */}
         <div style={isMobile ? {} : styles.mapSection}>
           <h3>On s'ha perdut/trobat?</h3>
           {obtenintUbicacio && <p>⏳ Obtenint ubicació...</p>}

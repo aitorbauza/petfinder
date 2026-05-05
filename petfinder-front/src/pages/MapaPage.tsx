@@ -10,7 +10,7 @@ import ChatFloatingButton from '../components/ChatFloatingButton';
 import { UserContext } from '../context/UserContext';
 import FiltresMapa, { type Filters } from '../components/FiltresMapa';
 import { EspecieEnum } from '../enums/EspecieEnum';
-import type { UbicacioTempsReal } from '../interfaces/geolocalitzacio';
+import type { UbicacioTempsReal } from '../interfaces/geolocalitzacio_interface';
 
 // Configuración iconos Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -61,13 +61,12 @@ interface UbicacioMap {
   [mascotaId: number]: UbicacioTempsReal;
 }
 
-// 🔥 Funció per desplaçar markers a la mateixa posició (spiderfying)
 const getOffsetPosition = (baseLat: number, baseLng: number, index: number, total: number): { lat: number; lng: number } => {
   if (total === 1) {
     return { lat: baseLat, lng: baseLng };
   }
   
-  // Radi de desplaçament en graus (~30 metres)
+  // Radi de desplaçament en graus (30 metres)
   const radius = 0.0003;
   const angle = (index / total) * Math.PI * 2;
   const offsetLat = Math.cos(angle) * radius;
@@ -91,7 +90,6 @@ const MapaPage: React.FC = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // Estat per a ubicacions en temps real
   const [ubicacionsTempsReal, setUbicacionsTempsReal] = useState<UbicacioMap>({});
 
   const [openChatConversaId, setOpenChatConversaId] = useState<number | null>(null);
@@ -99,7 +97,6 @@ const MapaPage: React.FC = () => {
   const [openChatDestinatariNom, setOpenChatDestinatariNom] = useState<string | null>(null);
   const [openChatAnunciId, setOpenChatAnunciId] = useState<number | null>(null);
 
-  // Estat dels filtres
   const [filters, setFilters] = useState<Filters>({
     especie: 'tots',
     estat: 'tots',
@@ -107,7 +104,6 @@ const MapaPage: React.FC = () => {
     teGeolocalitzacio: false
   });
 
-  // Funció per carregar ubicacions actives
   const carregarUbicacionsActives = useCallback(async () => {
     try {
       const ubicacions = await geolocalitzacioService.obtenirTotesUbicacionsActives();
@@ -139,7 +135,6 @@ const MapaPage: React.FC = () => {
     return () => clearInterval(interval);
   }, [carregarUbicacionsActives]);
 
-  // Aplicar filtres als anuncis
   const anunciosFiltrats = useMemo(() => {
     return anuncios.filter(anuncio => {
       // Filtre per espècie
@@ -182,7 +177,7 @@ const MapaPage: React.FC = () => {
     });
   }, [anuncios, filters]);
 
-  // Funció per obtenir la posició actual d'una mascota (temps real o estàtica)
+  // Funció per obtenir la posició actual d'una mascota
   const getPosicioAnunci = useCallback((anuncio: Anuncio): { lat: number; lng: number } => {
     if (anuncio.teGeolocalitzacio === true && ubicacionsTempsReal[anuncio.mascotaId]) {
       const ubicacio = ubicacionsTempsReal[anuncio.mascotaId];
@@ -191,7 +186,6 @@ const MapaPage: React.FC = () => {
     return { lat: anuncio.latitud, lng: anuncio.longitud };
   }, [ubicacionsTempsReal]);
 
-  // 🔥 Agrupar anuncis per ubicació (per aplicar desplaçament)
   const markersAmbDesplacament = useMemo(() => {
     const groups = new Map<string, Anuncio[]>();
     
@@ -223,7 +217,7 @@ const MapaPage: React.FC = () => {
     return result;
   }, [anunciosFiltrats, getPosicioAnunci]);
 
-  // 🔥 Efecte per rebre l'estat de navegació del xat (amb nom del destinatari)
+  // Rebre estat de xat obert des de la pàgina d'anunci
   useEffect(() => {
     if (hasProcessedState.current) return;
     
@@ -246,14 +240,6 @@ const MapaPage: React.FC = () => {
       navigate('/mapa', { replace: true, state: {} });
     }
   }, [location, navigate]);
-
-  // 🔥 Efecte per obrir el xat automàticament quan es reben les dades
-  useEffect(() => {
-    if (openChatDestinatariId && openChatDestinatariNom !== undefined && !openChatConversaId) {
-      console.log('🚀 Preparat per obrir xat amb:', openChatDestinatariNom);
-      // El ChatFloatingButton obrirà automàticament el xat gràcies al prop openDestinatariId
-    }
-  }, [openChatDestinatariId, openChatDestinatariNom, openChatConversaId]);
 
   useEffect(() => {
     return () => {
@@ -356,6 +342,7 @@ const MapaPage: React.FC = () => {
     return styles.cardImage as React.CSSProperties;
   };
 
+  // TODO -> Moure styles a mapaStyles.tsx
   const detailButtonStyle: React.CSSProperties = {
     marginTop: '10px',
     padding: '6px 12px',
@@ -495,7 +482,7 @@ const MapaPage: React.FC = () => {
                 }}
                 onClick={() => setIsFilterOpen(true)}
               >
-                🔍 Filtres
+                Aplicar Filtres
                 {hasActiveFilters && (
                   <span style={{
                     backgroundColor: '#fff',
@@ -568,7 +555,7 @@ const MapaPage: React.FC = () => {
                           e.currentTarget.style.background = '#06682D';
                         }}
                       >
-                        Veure detall →
+                        Veure detall
                       </button>
                     </div>
                   </div>
@@ -612,7 +599,7 @@ const MapaPage: React.FC = () => {
               e.currentTarget.style.background = '#06682D';
             }}
           >
-            + Crear anunci
+            Crear anunci
           </button>
 
           <MapContainer
@@ -622,7 +609,7 @@ const MapaPage: React.FC = () => {
           >
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             
-            {/* 🔥 MOSTRAR TOTS ELS MARKERS AMB DESPLAÇAMENT */}
+            {/* Mostrar tots els markers amb desplacament */}
             {markersAmbDesplacament.map((item, idx) => (
               <Marker
                 key={`marker-${item.anuncio.id}-${idx}`}
@@ -646,7 +633,7 @@ const MapaPage: React.FC = () => {
                     </div>
                     {item.anuncio.teGeolocalitzacio === true && (
                       <div style={{ fontSize: '10px', color: '#06682D', marginTop: '8px' }}>
-                        📡 En temps real
+                        En temps real
                         {getUltimaActualitzacio(item.anuncio) && (
                           <span style={{ display: 'block', fontSize: '9px', color: '#888' }}>
                             Actualitzat: {getUltimaActualitzacio(item.anuncio)}
@@ -676,7 +663,6 @@ const MapaPage: React.FC = () => {
             ))}
           </MapContainer>
 
-          {/* 🔥 Botó flotant del xat - amb suport per nom del destinatari */}
           <ChatFloatingButton 
             key={`chat-${openChatDestinatariId}-${openChatDestinatariNom}`}
             usuariId={user?.usuariId || 0}

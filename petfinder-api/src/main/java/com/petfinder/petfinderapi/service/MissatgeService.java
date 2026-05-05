@@ -109,11 +109,8 @@ public class MissatgeService {
                 dto.setUltimMissatgeData(last.getData());
             }
 
-            // 🔥 Comptar missatges no llegits directament a la BD
             int noLlegits = (int) missatgeLlegitRepository.countByUsuari_UsuariIdAndLlegitFalse(usuariId);
             dto.setMissatgesNoLlegits(noLlegits);
-
-            System.out.println("📊 Conversa " + conversa.getConversaId() + " - No llegits per usuari " + usuariId + ": " + noLlegits);
 
             return dto;
         }).collect(Collectors.toList());

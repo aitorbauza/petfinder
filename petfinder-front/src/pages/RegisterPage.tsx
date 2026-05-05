@@ -76,6 +76,7 @@ const RegisterPage: React.FC = () => {
     }
   };
 
+  // Funció per gestionar el registre de l'usuari
   const handleSubmit = async () => {
     setError('');
 
@@ -93,7 +94,7 @@ const RegisterPage: React.FC = () => {
         email, 
         password, 
         telefon, 
-        rol: 'USER',
+        rol: 'USER', // Per defecte, el rol serà USER. L'admin es crearà manualment a la base de dades.
         imatgeUrl: null 
       });
       
@@ -108,7 +109,7 @@ const RegisterPage: React.FC = () => {
       navigate('/login', { state: { registered: true } });
     } catch (err: any) {
       console.error('Error registrant usuari:', err);
-      setError('Error al registrar el usuario. El email ya puede estar en uso.');
+      setError('Error al registrar el usuario. El email o el telefono ya pueden estar en uso.');
     } finally {
       setLoading(false);
       setPujantImatge(false);
@@ -119,6 +120,7 @@ const RegisterPage: React.FC = () => {
     if (e.key === 'Enter') handleSubmit();
   };
 
+  // TODO -> Moure estils a un fitxer separat
   const circularDragDropStyle: React.CSSProperties = {
     width: '120px',
     height: '120px',

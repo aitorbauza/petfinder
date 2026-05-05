@@ -47,6 +47,7 @@ const DetallAnunciPage: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Funció per carregar l'anunci per ID
   const fetchAnunci = async () => {
     try {
       setLoading(true);
@@ -79,9 +80,9 @@ const DetallAnunciPage: React.FC = () => {
     });
   };
 
+  // En cas que no hi hagi imatge, utilitzem una imatge placeholder (un SVG simple amb una petjada)
   const placeholderImageUrl = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"%3E%3Crect width="400" height="300" fill="%23e0e0e0"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="20"%3E🐾%3C/text%3E%3C/svg%3E';
 
-  // 🔥 Comparació correcta de IDs
   const isOwner = user?.usuariId === anunci?.usuariId;
   const showChatButton = !isOwner && anunci !== null;
 
@@ -89,7 +90,6 @@ const DetallAnunciPage: React.FC = () => {
   const handleOpenChat = () => {
   if (!anunci) return;
   
-  // 🔥 Assegurar que el nom no sigui null o undefined
   const nom = anunci.usuariNom || 'Usuari';
   
   console.log('📤 Navegant a xat amb:', { 
@@ -97,6 +97,7 @@ const DetallAnunciPage: React.FC = () => {
     destinatariNom: nom 
   });
   
+  // S'obri el xat en la pantala del mapa
   navigate('/mapa', { 
     state: { 
       openChat: true, 
@@ -205,7 +206,6 @@ const DetallAnunciPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 🔥 Botó de contacte - només si NO és el propietari */}
             {showChatButton && (
               <button
                 style={getChatButtonStyle(false)}

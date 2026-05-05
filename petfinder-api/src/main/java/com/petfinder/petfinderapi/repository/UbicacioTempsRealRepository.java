@@ -23,7 +23,4 @@ public interface UbicacioTempsRealRepository extends JpaRepository<UbicacioTemps
     @Transactional
     @Query("UPDATE UbicacioTempsReal u SET u.actiu = false WHERE u.mascota.mascotaId = :mascotaId AND u.actiu = true")
     void desactivarUbicacionsAnteriors(@Param("mascotaId") Long mascotaId);
-
-    // Obtenir l'històric d'ubicacions d'una mascota
-    List<UbicacioTempsReal> findByMascota_MascotaIdOrderByTimestampDesc(Long mascotaId);
 }

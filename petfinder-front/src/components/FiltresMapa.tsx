@@ -49,7 +49,7 @@ const FiltresMapa: React.FC<FiltresMapaProps> = ({ onFilterChange, isMobile, isO
         </button>
       </div>
 
-      {/* Filtre per espècie - 5 botons en grid de 3 columnes */}
+      {/* Filtre de Tipus d'Animal */}
       <div style={styles.filterSection}>
         <label style={styles.filterLabel}>Tipus d'animal</label>
         <div style={styles.optionsGrid}>
@@ -57,7 +57,7 @@ const FiltresMapa: React.FC<FiltresMapaProps> = ({ onFilterChange, isMobile, isO
             style={filters.especie === 'tots' ? styles.optionActive : styles.option}
             onClick={() => handleFilterChange('especie', 'tots')}
           >
-            Tots
+            ✅ Tots
           </button>
           <button
             style={filters.especie === 'gos' ? styles.optionActive : styles.option}
@@ -86,7 +86,7 @@ const FiltresMapa: React.FC<FiltresMapaProps> = ({ onFilterChange, isMobile, isO
         </div>
       </div>
 
-      {/* Filtre per estat - 3 botons per fila */}
+      {/* Filtre d'Estat */}
       <div style={styles.filterSection}>
         <label style={styles.filterLabel}>Estat</label>
         <div style={styles.optionsGrid}>
@@ -111,7 +111,7 @@ const FiltresMapa: React.FC<FiltresMapaProps> = ({ onFilterChange, isMobile, isO
         </div>
       </div>
 
-      {/* 🔥 Filtre per geolocalització en temps real - JA FUNCIONAL */}
+      {/* Filtre de Geolocalització */}
       <div style={styles.filterSection}>
         <label style={styles.filterLabel}>Geolocalització en temps real</label>
         <div style={styles.checkboxContainer}>
@@ -123,7 +123,7 @@ const FiltresMapa: React.FC<FiltresMapaProps> = ({ onFilterChange, isMobile, isO
             style={styles.checkbox}
           />
           <label htmlFor="teGeolocalitzacio" style={styles.checkboxLabel}>
-            📡 Mostrar només animals amb geolocalització activa
+            Mostrar només animals amb geolocalització activa
           </label>
         </div>
         <p style={styles.hintText}>

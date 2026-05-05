@@ -1,4 +1,3 @@
-// services/ubicacioService.ts
 import axios from 'axios';
 
 interface UbicacioInfo {

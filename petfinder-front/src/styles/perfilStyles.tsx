@@ -44,7 +44,6 @@ export const styles: { [key: string]: CSSProperties } = {
     marginBottom: '32px',
   },
   
-  // 🔥 Alineació a l'esquerra per a les files d'informació
   infoRow: {
     display: 'flex',
     alignItems: 'flex-start',
@@ -90,7 +89,6 @@ export const styles: { [key: string]: CSSProperties } = {
     width: '100%',
   },
   
-  // 🔥 Labels alineats a l'esquerra
   label: {
     display: 'block',
     fontSize: '12px',

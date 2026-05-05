@@ -115,14 +115,14 @@ export const styles: { [key: string]: CSSProperties } = {
   },
 
   formSection: {
-    flex: '0 0 58%',  // Ajustat
+    flex: '0 0 58%', 
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '20px',
   },
 
   mapSection: {
-    flex: '0 0 38%',  // Ajustat
+    flex: '0 0 38%', 
     position: 'sticky' as const,
     top: '30px',
     alignSelf: 'flex-start',
@@ -161,14 +161,12 @@ export const styles: { [key: string]: CSSProperties } = {
     backgroundColor: '#e8f5e9',
   },
   
-  // Mapa mòbil
   mobileMap: {
     width: '100%',
     height: '40vh',
     borderRadius: '12px',
   },
   
-  // Preview imatge
   previewImage: {
     width: '100px',
     height: '100px',
@@ -192,7 +190,6 @@ export const styles: { [key: string]: CSSProperties } = {
     textAlign: 'center' as const,
   },
   
-  // Icona drag & drop
   dragDropIcon: {
     fontSize: '48px',
     marginBottom: '10px',

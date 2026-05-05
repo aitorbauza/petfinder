@@ -12,9 +12,6 @@ import java.util.UUID;
 @Service
 public class FileStorageService {
 
-    @Value("${app.upload.dir:uploads/}")
-    private String uploadDir;
-
     @Value("${app.upload.mascotes:uploads/mascotes/}")
     private String mascotesDir;
 
@@ -73,7 +70,6 @@ public class FileStorageService {
 
         if (Files.exists(filePath)) {
             Files.delete(filePath);
-            System.out.println("✅ Fitxer eliminat: " + filePath.toAbsolutePath());
         }
     }
 }

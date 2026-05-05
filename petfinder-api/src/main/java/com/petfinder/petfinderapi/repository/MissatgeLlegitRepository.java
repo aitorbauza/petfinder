@@ -7,17 +7,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
-import java.util.Optional;
 
 public interface MissatgeLlegitRepository extends JpaRepository<MissatgeLlegit, Long> {
 
     List<MissatgeLlegit> findByUsuari_UsuariIdAndLlegitFalse(Long usuariId);
 
-    // 🔥 Mètode per comptar missatges no llegits d'un usuari
     long countByUsuari_UsuariIdAndLlegitFalse(Long usuariId);
-
-    // Mètode per cercar per missatge i usuari
-    Optional<MissatgeLlegit> findByMissatge_IdAndUsuari_UsuariId(Long missatgeId, Long usuariId);
 
     @Modifying
     @Transactional

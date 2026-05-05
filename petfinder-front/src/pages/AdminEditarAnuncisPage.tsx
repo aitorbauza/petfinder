@@ -117,7 +117,7 @@ const AdminEditarAnuncioPage: React.FC = () => {
       setEspecieId(anunci.especieId || null);
       setRaca(anunci.raca || '');
       setDescripcio(anunci.descripcio || '');
-      setLatitud(anunci.latitud || 41.3851);
+      setLatitud(anunci.latitud || 41.3851); // Valor por defecto Barcelona
       setLongitud(anunci.longitud || 2.1734);
       setEstatId(anunci.estat === 'Perdut' ? 1 : 2);
       setImatgeUrl(anunci.imatgeUrl || null);
@@ -246,6 +246,7 @@ const AdminEditarAnuncioPage: React.FC = () => {
     return null;
   };
 
+  // TODO -> Moure styles a fitxer d'estils d'admin
   const dragDropZoneStyle: React.CSSProperties = {
     border: `2px dashed ${isDragging ? '#06682D' : '#ccc'}`,
     borderRadius: '16px',

@@ -23,8 +23,6 @@ public class AnunciController {
     @PostMapping("/crear")
     public String crearAnunci(@RequestBody PostAnunciDTO dto, @RequestParam Long usuariId) throws Exception {
         try {
-            System.out.println("📥 Rebut teGeolocalitzacio: " + dto.getTeGeolocalitzacio());
-            System.out.println("📥 Rebut microchipId: " + dto.getMicrochipId());
             anunciService.crearAnunci(dto, usuariId);
             return "OK";
         } catch (Exception e) {
@@ -51,8 +49,6 @@ public class AnunciController {
     public ResponseEntity<?> obtenirAnunciPerId(@PathVariable Long anunciId) {
         try {
             GetAnunciDTO anunci = anunciService.obtenirAnunciPerId(anunciId);
-            System.out.println("📢 Enviant anunci al frontend: " + anunci);
-            System.out.println("👤 usuariId: " + anunci.getUsuariId());
             return ResponseEntity.ok(anunci);
         } catch (Exception e) {
             return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));

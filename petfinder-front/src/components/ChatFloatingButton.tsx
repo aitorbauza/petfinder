@@ -64,6 +64,7 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Carregar converses i missatges no llegits al muntar i cada 5 segons si l'usuari està loguejat
   useEffect(() => {
     if (usuariId) {
       carregarConverses();
@@ -91,6 +92,7 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
     }
   }, [openConversaId, openDestinatariId, openDestinatariNom]);
 
+  // Desplaçar-se al final dels missatges quan canvien
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -141,6 +143,7 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
     setLoading(false);
   };
 
+  // Obre conversa amb un usuari per primera vegada, utilitzant el nom rebut de l'anunci
   const obrirConversaAmbUsuari = async (destinatariId: number, destinatariNom?: string | null) => {
 
     console.log('📞 obrirConversaAmbUsuari - destinatariNom rebut:', destinatariNom);
@@ -154,9 +157,8 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
       await carregarMissatges(conversaExistent.conversaId);
     } else {
 
-      // 🔥 Utilitzar el nom rebut si està disponible
+      // Utilitzar el nom rebut si està disponible
       const nom = destinatariNom || 'Usuari';
-                console.log('📝 Creant conversa amb nom:', nom);
 
       setSelectedConversa({
         conversaId: 0,

@@ -6,11 +6,3 @@ export interface UbicacioTempsReal {
   timestamp: string;
   actiu: boolean;
 }
-
-export interface MascotaAmbGeolocalitzacio {
-  mascotaId: number;
-  nom: string;
-  teGeolocalitzacio: boolean;
-  microchipId: string | null;
-  ultimaUbicacio?: UbicacioTempsReal;
-}

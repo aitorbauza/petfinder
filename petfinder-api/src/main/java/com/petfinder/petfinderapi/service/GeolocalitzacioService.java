@@ -6,10 +6,7 @@ import com.petfinder.petfinderapi.model.Mascota;
 import com.petfinder.petfinderapi.model.UbicacioTempsReal;
 import com.petfinder.petfinderapi.repository.MascotaRepository;
 import com.petfinder.petfinderapi.repository.UbicacioTempsRealRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
@@ -18,10 +15,9 @@ import java.util.stream.Collectors;
 @Service
 public class GeolocalitzacioService {
 
-    private static final Logger log = LoggerFactory.getLogger(GeolocalitzacioService.class);
     private static final Random random = new Random();
 
-    // Radi de moviment en graus (~111 metres per 0.001 graus)
+    // Radi de moviment en graus (111 metres per 0.001 graus)
     private static final double RADI_MOVIMENT = 0.003;
     private static final double RADI_MAXIM = 0.01; // ~1km de radi màxim des del punt inicial
 
@@ -51,7 +47,6 @@ public class GeolocalitzacioService {
         ubicacio.setActiu(true);
 
         ubicacioRepository.save(ubicacio);
-        log.info("📍 Ubicació guardada per a mascota {}: ({}, {})", mascotaId, latitud, longitud);
     }
 
     public UbicacioTempsRealDTO generarMovimentAleatori(Long mascotaId) {

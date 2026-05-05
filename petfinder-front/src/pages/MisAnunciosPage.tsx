@@ -46,6 +46,7 @@ const MisAnunciosPage: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Funció per carregar els anuncis propis de l'usuari
   const fetchMisAnuncios = async () => {
     if (!user?.usuariId) return;
     
@@ -60,6 +61,7 @@ const MisAnunciosPage: React.FC = () => {
     }
   };
 
+  // Funció per eliminar un anunci
   const handleDelete = async (anunciId: number) => {
     if (!user?.usuariId) return;
     
@@ -82,6 +84,7 @@ const MisAnunciosPage: React.FC = () => {
   const endIndex = startIndex + itemsPerPage;
   const currentAnuncios = anuncios.slice(startIndex, endIndex);
 
+  // Funció per canviar de pàgina en cas de paginació
   const goToPage = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -108,6 +111,7 @@ const MisAnunciosPage: React.FC = () => {
 
   const placeholderImageUrl = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="150" viewBox="0 0 200 150"%3E%3Crect width="200" height="150" fill="%23e0e0e0"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="16"%3E🐾%3C/text%3E%3C/svg%3E';
 
+  // TODO -> Moure estils a un fitxer separat
   const cardsGridStyle: React.CSSProperties = {
     display: 'grid',
     gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',

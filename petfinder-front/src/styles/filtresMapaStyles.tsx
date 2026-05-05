@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 
 export const styles: { [key: string]: CSSProperties } = {
   filterContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: '16px',
     padding: '20px',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
@@ -108,7 +108,8 @@ export const styles: { [key: string]: CSSProperties } = {
     marginTop: '8px',
     marginBottom: 0,
   },
-  // Estils per al modal mòbil
+
+  // Estils pel mòbil
   modalOverlay: {
     position: 'fixed' as const,
     top: 0,

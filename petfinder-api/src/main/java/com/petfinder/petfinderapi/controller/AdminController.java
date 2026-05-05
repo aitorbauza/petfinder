@@ -20,7 +20,6 @@ public class AdminController {
         this.adminService = adminService;
     }
 
-    // ==================== ANUNCIS ====================
     @GetMapping("/anuncis")
     public ResponseEntity<List<AnunciAdminDTO>> obtenirTotsElsAnuncis() {
         return ResponseEntity.ok(adminService.obtenirTotsElsAnuncis());
@@ -36,7 +35,6 @@ public class AdminController {
         }
     }
 
-    // 🔥 NOMÉS UN MÈTODE PUT PER EDITAR ANUNCIS
     @PutMapping("/anuncis/{anunciId}")
     public ResponseEntity<?> editarAnunciAdmin(
             @PathVariable Long anunciId,
@@ -49,7 +47,6 @@ public class AdminController {
         }
     }
 
-    // ==================== USUARIS ====================
     @GetMapping("/usuaris")
     public ResponseEntity<List<UsuariAdminDTO>> obtenirTotsElsUsuaris() {
         return ResponseEntity.ok(adminService.obtenirTotsElsUsuaris());

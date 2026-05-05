@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, useState, useEffect } from 'react';
+import { createContext, type ReactNode, useState } from 'react';
 
 interface User {
   usuariId: number;
@@ -14,6 +14,7 @@ interface UserContextType {
   setUser: (user: User | null) => void;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const UserContext = createContext<UserContextType>({
   user: null,
   setUser: () => {},

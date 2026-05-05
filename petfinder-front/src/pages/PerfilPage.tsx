@@ -16,27 +16,24 @@ const PerfilPage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  // Form data - valors originals
   const [originalNom, setOriginalNom] = useState('');
   const [originalTelefon, setOriginalTelefon] = useState('');
   const [originalImatgeUrl, setOriginalImatgeUrl] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   
-  // Form data - valors editats (temporals)
   const [editNom, setEditNom] = useState('');
   const [editTelefon, setEditTelefon] = useState('');
   const [editImatgeFile, setEditImatgeFile] = useState<File | null>(null);
   const [editImatgePreview, setEditImatgePreview] = useState<string | null>(null);
   const [eliminarImatgeEdit, setEliminarImatgeEdit] = useState(false);
   
-  // UI states
   const [pujantImatge, setPujantImatge] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // 🔥 Comprovar si l'usuari és admin
   const isAdmin = user?.rol === 'ADMIN';
 
+  // Carregar dades de l'usuari al muntatge del component
   useEffect(() => {
     if (!user) {
       navigate('/login');
@@ -54,6 +51,7 @@ const PerfilPage: React.FC = () => {
     }
   }, [user, navigate]);
 
+  // Detectar canvis en la mida de la pantalla per a disseny responsive
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
@@ -70,7 +68,7 @@ const PerfilPage: React.FC = () => {
     navigate('/mis-anuncios');
   };
 
-  // 🔥 Navegació per a admin
+  // Navegació per a admin
   const handleAllAnuncis = () => {
     navigate('/admin/anuncis');
   };
@@ -79,6 +77,7 @@ const PerfilPage: React.FC = () => {
     navigate('/admin/usuaris');
   };
 
+  // Funció per obtenir la inicial del nom per al placeholder de l'avatar
   const getInitial = () => {
     const displayNom = isEditing ? editNom : originalNom;
     if (!displayNom) return '?';
@@ -230,6 +229,7 @@ const PerfilPage: React.FC = () => {
     };
   }, [editImatgePreview]);
 
+  // TODO -> Moure estils a un fitxer separat
   const avatarPlaceholderStyle: React.CSSProperties = {
     width: isMobile ? '120px' : '150px',
     height: isMobile ? '120px' : '150px',
@@ -298,6 +298,7 @@ const PerfilPage: React.FC = () => {
 
   const currentImageUrl = getCurrentImageUrl();
   const showImage = currentImageUrl !== null && currentImageUrl !== undefined;
+  // Comprovar si hi ha canvis per habilitar/deshabilitar el botó de guardar
   const hasChanges = (editNom !== originalNom || 
                       editTelefon !== originalTelefon || 
                       editImatgeFile !== null || 
@@ -326,7 +327,7 @@ const PerfilPage: React.FC = () => {
                 {getInitial()}
               </div>
             )}
-            
+             {/* Si l'usuari està editant el perfil */}
             {isEditing && (
               <>
                 <div
@@ -406,7 +407,8 @@ const PerfilPage: React.FC = () => {
                 </div>
               </>
             ) : (
-              <>
+              // I si no està editant, mostrar la informació com a text normal
+              <> 
                 <div style={styles.infoRow}>
                   <span style={styles.infoIcon}>👤</span>
                   <div>
@@ -464,7 +466,7 @@ const PerfilPage: React.FC = () => {
                   ✏️ Editar perfil
                 </button>
                 
-                {/* 🔥 BOTONS PER A ADMIN */}
+                {/* ADMIN */}
                 {isAdmin && (
                   <>
                     <button 

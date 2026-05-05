@@ -29,7 +29,7 @@ const AdminUsuarisPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // 6 cards per pàgina a desktop (2x3), 2 cards a mòbil (2x1)
+  // 6 cards per pàgina a desktop, 2 cards a mòbil
   const getItemsPerPageCustom = () => isMobile ? 2 : 6;
   const itemsPerPage = getItemsPerPageCustom();
   const totalPages = Math.ceil(usuaris.length / itemsPerPage);
@@ -112,12 +112,12 @@ const AdminUsuarisPage: React.FC = () => {
     return `${API_URL}${imatgeUrl}`;
   };
 
-  // 🔥 Obté la primera lletra del nom per al placeholder
+  // Obté la primera lletra del nom per al placeholder
   const getInitial = (nom: string) => {
     return nom ? nom.charAt(0).toUpperCase() : '?';
   };
 
-  // 🔥 Placeholder amb inicial
+  // Placeholder amb inicial
   const getPlaceholderAvatar = (nom: string) => {
     return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2306682D'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23fff' font-size='40' font-weight='bold'%3E${getInitial(nom)}%3C/text%3E%3C/svg%3E`;
   };
@@ -233,7 +233,7 @@ const AdminUsuarisPage: React.FC = () => {
                               onMouseEnter={(e) => { e.currentTarget.style.background = '#0b5ed7'; }}
                               onMouseLeave={(e) => { e.currentTarget.style.background = '#2196F3'; }}
                             >
-                              ✏️ Editar
+                              Editar
                             </button>
                             <button
                               style={styles.deleteButton}
@@ -241,7 +241,7 @@ const AdminUsuarisPage: React.FC = () => {
                               onMouseEnter={(e) => { e.currentTarget.style.background = '#c62828'; }}
                               onMouseLeave={(e) => { e.currentTarget.style.background = '#e53935'; }}
                             >
-                              🗑️ Eliminar
+                              Eliminar
                             </button>
                           </div>
                         </>

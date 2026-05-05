@@ -2,7 +2,6 @@ import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 import { styles } from '../styles/headerStyles';
-import type { User } from '../interfaces/user.types';
 
 const API_URL = 'http://localhost:9090';
 

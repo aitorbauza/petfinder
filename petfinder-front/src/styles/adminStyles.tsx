@@ -228,7 +228,6 @@ export const styles: { [key: string]: CSSProperties } = {
   },
 };
 
-// Estils per a mòbil (sobreescriuen)
 export const mobileStyles = {
   cardsGrid: {
     gridTemplateColumns: '1fr',

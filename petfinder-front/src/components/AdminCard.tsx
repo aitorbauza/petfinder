@@ -55,7 +55,7 @@ const AdminCard: React.FC<AdminCardProps> = ({
             onMouseEnter={(e) => { e.currentTarget.style.background = '#0b5ed7'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = '#2196F3'; }}
           >
-            ✏️ Editar
+            Editar
           </button>
           <button
             style={styles.deleteButton}
@@ -63,7 +63,7 @@ const AdminCard: React.FC<AdminCardProps> = ({
             onMouseEnter={(e) => { e.currentTarget.style.background = '#c62828'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = '#e53935'; }}
           >
-            🗑️ Eliminar
+            Eliminar
           </button>
         </div>
       </div>

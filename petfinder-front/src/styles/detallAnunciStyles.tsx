@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react';
 
-// Funció que retorna CSSProperties (NO pots usar-la directament com a estil)
 export const getStatusBadgeStyle = (estat: string): CSSProperties => ({
   display: 'inline-block',
   padding: '6px 16px',
@@ -11,7 +10,6 @@ export const getStatusBadgeStyle = (estat: string): CSSProperties => ({
   color: estat === 'Perdut' ? '#c62828' : '#2e7d32',
 });
 
-// Funció que retorna CSSProperties
 export const getChatButtonStyle = (isOwner: boolean): CSSProperties => ({
   width: '100%',
   padding: '16px',
@@ -30,12 +28,10 @@ export const getChatButtonStyle = (isOwner: boolean): CSSProperties => ({
   marginTop: '16px',
 });
 
-// Funció per a halfRow
 export const getHalfRowStyle = (isMobile: boolean): CSSProperties => ({
   flex: isMobile ? '1 1 100%' : '1 1 calc(50% - 8px)',
 });
 
-// Estils estàtics (sense funció)
 export const styles: { [key: string]: CSSProperties } = {
   container: {
     minHeight: '100vh',

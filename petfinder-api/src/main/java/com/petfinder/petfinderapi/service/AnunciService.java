@@ -62,13 +62,12 @@ public class AnunciService {
 
         anunciRepository.save(anunci);
 
-        // 🔥 Si té geolocalització activa, guardar la ubicació inicial
         if (mascota.getTeGeolocalitzacio() != null && mascota.getTeGeolocalitzacio()) {
             try {
                 geolocalitzacioService.guardarUbicacio(mascota.getMascotaId(), dto.getLatitud(), dto.getLongitud());
-                log.info("📍 Ubicació inicial guardada per a mascota {} amb geolocalització", mascota.getMascotaId());
             } catch (Exception e) {
                 log.error("Error guardant ubicació inicial per a mascota {}: {}", mascota.getMascotaId(), e.getMessage());
+                throw new BusinessException("Error guardant la ubicació inicial. Si us plau, intenta-ho més tard.");
             }
         }
 
@@ -100,24 +99,20 @@ public class AnunciService {
         Anunci anunci = verificarPropietatAnunci(anunciId, usuariId);
         Mascota mascota = anunci.getMascota();
 
-        // 🔥 Guardar estat anterior de geolocalització
         boolean geolocalitzacioJaActiva = mascota.getTeGeolocalitzacio() != null && mascota.getTeGeolocalitzacio();
         boolean geolocalitzacioNovaActiva = dto.getTeGeolocalitzacio() != null && dto.getTeGeolocalitzacio();
 
         actualitzarDadesMascota(mascota, dto);
         actualitzarImatgeMascota(mascota, dto);
 
-        // 🔥 Actualitzar geolocalització si ha canviat
         mascota.setTeGeolocalitzacio(geolocalitzacioNovaActiva);
         mascota.setMicrochipId(dto.getMicrochipId());
 
         mascotaRepository.save(mascota);
 
-        // 🔥 Si s'ha activat la geolocalització ara (abans no ho estava), guardar la ubicació inicial
         if (geolocalitzacioNovaActiva && !geolocalitzacioJaActiva) {
             try {
                 geolocalitzacioService.guardarUbicacio(mascota.getMascotaId(), dto.getLatitud(), dto.getLongitud());
-                log.info("📍 Ubicació inicial guardada per a mascota {} en edició (geolocalització activada)", mascota.getMascotaId());
             } catch (Exception e) {
                 log.error("Error guardant ubicació inicial per a mascota {}: {}", mascota.getMascotaId(), e.getMessage());
             }

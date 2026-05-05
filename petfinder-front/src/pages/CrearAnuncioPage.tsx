@@ -90,18 +90,15 @@ const CrearAnuncioPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   
-  // Estats per a la imatge
   const [imatge, setImatge] = useState<File | null>(null);
   const [imatgeUrl, setImatgeUrl] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [pujantImatge, setPujantImatge] = useState(false);
 
-  // Estats per a la ubicació textual
   const [ciutat, setCiutat] = useState('');
   const [provincia, setProvincia] = useState('');
   const [obtenintUbicacio, setObtenintUbicacio] = useState(false);
 
-  // 🔥 NOUS ESTATS PER A GEOLOCALITZACIÓ SIMULADA
   const [teGeolocalitzacio, setTeGeolocalitzacio] = useState(false);
   const [microchipId, setMicrochipId] = useState('');
 
@@ -145,7 +142,7 @@ const CrearAnuncioPage: React.FC = () => {
     }
   }, []);
 
-  // 🔥 Quan s'activa la geolocalització, generar microchip ID automàticament
+  // Quan s'activa la geolocalització, generar microchip ID automàticament
   const handleTeGeolocalitzacioChange = (checked: boolean) => {
     setTeGeolocalitzacio(checked);
     if (checked && !microchipId) {
@@ -198,6 +195,7 @@ const CrearAnuncioPage: React.FC = () => {
     }
   };
 
+  // Manejar drag & drop per a la imatge
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -267,7 +265,7 @@ const CrearAnuncioPage: React.FC = () => {
     }
   };
 
-  // Estils per als nous camps
+  // TODO -> Moure estils a un fitxer separat
   const checkboxContainerStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
@@ -366,7 +364,6 @@ const CrearAnuncioPage: React.FC = () => {
             onChange={(e) => setDescripcio(e.target.value)}
           />
 
-          {/* 🔥 CHECKBOX GEOLOCALITZACIÓ */}
           <div style={checkboxContainerStyle}>
             <input
               type="checkbox"
@@ -376,11 +373,11 @@ const CrearAnuncioPage: React.FC = () => {
               style={{ width: '18px', height: '18px', cursor: 'pointer' }}
             />
             <label htmlFor="teGeolocalitzacio" style={{ cursor: 'pointer', fontWeight: 500 }}>
-              📡 Disposa de geolocalització en temps real (microchip GPS)
+              Disposa de geolocalització en temps real (microchip GPS)
             </label>
           </div>
 
-          {/* 🔥 MICROCHIP ID (només si té geolocalització) */}
+          {/* MICROCHIP ID, només si té geolocalització */}
           {teGeolocalitzacio && (
             <div style={microchipContainerStyle}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
@@ -435,6 +432,7 @@ const CrearAnuncioPage: React.FC = () => {
             </p>
           )}
           
+          {/* Mapa */}
           <MapContainer 
             center={[latitud, longitud]} 
             zoom={13} 
@@ -508,7 +506,6 @@ const CrearAnuncioPage: React.FC = () => {
             onChange={(e) => setDescripcio(e.target.value)}
           />
 
-          {/* 🔥 CHECKBOX GEOLOCALITZACIÓ */}
           <div style={checkboxContainerStyle}>
             <input
               type="checkbox"
@@ -518,11 +515,10 @@ const CrearAnuncioPage: React.FC = () => {
               style={{ width: '18px', height: '18px', cursor: 'pointer' }}
             />
             <label htmlFor="teGeolocalitzacio" style={{ cursor: 'pointer', fontWeight: 500 }}>
-              📡 Disposa de geolocalització en temps real (microchip GPS)
+              Disposa de geolocalització en temps real (microchip GPS)
             </label>
           </div>
 
-          {/* 🔥 MICROCHIP ID (només si té geolocalització) */}
           {teGeolocalitzacio && (
             <div style={microchipContainerStyle}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
@@ -541,7 +537,6 @@ const CrearAnuncioPage: React.FC = () => {
             </div>
           )}
 
-          {/* Drag & Drop per a desktop */}
           <div>
             <label style={{ ...styles.label, textAlign: 'left' }}>
               Imatge de la mascota (opcional)

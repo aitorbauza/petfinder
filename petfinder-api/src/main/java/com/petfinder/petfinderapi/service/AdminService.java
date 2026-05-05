@@ -54,7 +54,6 @@ public class AdminService {
         this.estatRepository = estatRepository;
     }
 
-    // ==================== ANUNCIS ====================
     public List<AnunciAdminDTO> obtenirTotsElsAnuncis() {
         return anunciRepository.findAll().stream()
                 .map(this::convertirAnunciADTO)
@@ -93,41 +92,6 @@ public class AdminService {
         log.info("Admin ha eliminat l'anunci {}", anunciId);
     }
 
-    @Transactional
-    public void editarAnunci(Long anunciId, Map<String, Object> data) {
-        Anunci anunci = anunciRepository.findById(anunciId)
-                .orElseThrow(() -> new BusinessException("Anunci no trobat"));
-
-        Mascota mascota = anunci.getMascota();
-
-        if (data.containsKey("nomMascota")) {
-            mascota.setNom((String) data.get("nomMascota"));
-        }
-        if (data.containsKey("raca")) {
-            mascota.setRaca((String) data.get("raca"));
-        }
-        if (data.containsKey("descripcio")) {
-            mascota.setDescripcio((String) data.get("descripcio"));
-        }
-        if (data.containsKey("ciutat")) {
-            anunci.setCiutat((String) data.get("ciutat"));
-        }
-        if (data.containsKey("provincia")) {
-            anunci.setProvincia((String) data.get("provincia"));
-        }
-        if (data.containsKey("latitud")) {
-            anunci.setLatitud(Double.parseDouble(data.get("latitud").toString()));
-        }
-        if (data.containsKey("longitud")) {
-            anunci.setLongitud(Double.parseDouble(data.get("longitud").toString()));
-        }
-
-        mascotaRepository.save(mascota);
-        anunciRepository.save(anunci);
-        log.info("Admin ha editat l'anunci {}", anunciId);
-    }
-
-    // ==================== USUARIS ====================
     public List<UsuariAdminDTO> obtenirTotsElsUsuaris() {
         return usuariRepository.findAll().stream()
                 .map(this::convertirUsuariADTO)
@@ -178,31 +142,6 @@ public class AdminService {
         // Finalment, eliminar l'usuari
         usuariRepository.delete(usuari);
         log.info("Admin ha eliminat l'usuari {}", usuariId);
-    }
-
-    @Transactional
-    public void editarUsuari(Long usuariId, Map<String, String> data) {
-        Usuari usuari = usuariRepository.findById(usuariId)
-                .orElseThrow(() -> new BusinessException("Usuari no trobat"));
-
-        if (data.containsKey("nom")) {
-            usuari.setNom(data.get("nom"));
-        }
-        if (data.containsKey("telefon")) {
-            String nouTelefon = data.get("telefon");
-            // Validar que no existeixi un altre usuari amb aquest telèfon
-            Optional<Usuari> existingUser = usuariRepository.findByTelefon(nouTelefon);
-            if (existingUser.isPresent() && !existingUser.get().getUsuariId().equals(usuariId)) {
-                throw new BusinessException("El telèfon ja està en ús per un altre usuari");
-            }
-            usuari.setTelefon(nouTelefon);
-        }
-        if (data.containsKey("rol")) {
-            usuari.setRol(data.get("rol"));
-        }
-
-        usuariRepository.save(usuari);
-        log.info("Admin ha editat l'usuari {}", usuariId);
     }
 
     @Transactional
@@ -264,7 +203,31 @@ public class AdminService {
         log.info("Admin ha editat l'anunci {}", anunciId);
     }
 
-    // ==================== MÈTODES PRIVATS ====================
+    @Transactional
+    public void editarUsuari(Long usuariId, Map<String, String> data) {
+        Usuari usuari = usuariRepository.findById(usuariId)
+                .orElseThrow(() -> new BusinessException("Usuari no trobat"));
+
+        if (data.containsKey("nom")) {
+            usuari.setNom(data.get("nom"));
+        }
+        if (data.containsKey("telefon")) {
+            String nouTelefon = data.get("telefon");
+            // Validar que no existeixi un altre usuari amb aquest telèfon
+            Optional<Usuari> existingUser = usuariRepository.findByTelefon(nouTelefon);
+            if (existingUser.isPresent() && !existingUser.get().getUsuariId().equals(usuariId)) {
+                throw new BusinessException("El telèfon ja està en ús per un altre usuari");
+            }
+            usuari.setTelefon(nouTelefon);
+        }
+        if (data.containsKey("rol")) {
+            usuari.setRol(data.get("rol"));
+        }
+
+        usuariRepository.save(usuari);
+        log.info("Admin ha editat l'usuari {}", usuariId);
+    }
+
     private AnunciAdminDTO convertirAnunciADTO(Anunci anunci) {
         AnunciAdminDTO dto = new AnunciAdminDTO();
         dto.setId(anunci.getAnunciId());

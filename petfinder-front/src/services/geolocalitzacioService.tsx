@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { UbicacioTempsReal } from '../interfaces/geolocalitzacio';
+import type { UbicacioTempsReal } from '../interfaces/geolocalitzacio_interface';
 
 const API_URL = 'http://localhost:9090/api/ubicacions';
 

@@ -12,7 +12,7 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    // BusinessException → 400 Bad Request amb missatge amigable
+    // BusinessException → 400 Bad Request amb missatge "amigable"
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
         log.warn("Business exception: {}", ex.getMessage());
@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(ex.getMessage()));
     }
 
-    // Exception genèrica → 500 Internal Server Error (no hauria de passar)
+    // Exception genèrica → 500 Internal Server Error
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         log.error("Error inesperat: {}", ex.getMessage(), ex);

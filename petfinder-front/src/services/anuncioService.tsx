@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-// Constants
 const API_URL = 'http://localhost:9090/api/anuncis';
 
-// Tipus
 export interface PostAnunciDTO {
   nomMascota: string;
   especieId: number;
@@ -41,7 +39,6 @@ export interface GetAnunciDTO {
   mascotaId: number;
 }
 
-// Mètodes
 export const crearAnuncio = (usuariId: number, anuncioData: PostAnunciDTO) => {
   return axios.post<{ message: string }>(`${API_URL}/crear`, anuncioData, {
     params: { usuariId }

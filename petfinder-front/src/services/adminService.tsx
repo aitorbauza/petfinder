@@ -29,27 +29,22 @@ export interface AnunciAdminDTO {
   imatgeUrl: string | null;
 }
 
-// Obtenir tots els anuncis (admin)
 export const obtenirTotsElsAnuncis = () => {
   return axios.get<AnunciAdminDTO[]>(`${API_URL}/anuncis`);
 };
 
-// Obtenir tots els usuaris (admin)
 export const obtenirTotsElsUsuaris = () => {
   return axios.get<UsuariAdminDTO[]>(`${API_URL}/usuaris`);
 };
 
-// Eliminar un anunci (admin)
 export const eliminarAnunciAdmin = (anunciId: number) => {
   return axios.delete(`${API_URL}/anuncis/${anunciId}`);
 };
 
-// Eliminar un usuari (admin)
 export const eliminarUsuariAdmin = (usuariId: number) => {
   return axios.delete(`${API_URL}/usuaris/${usuariId}`);
 };
 
-// Editar un usuari (admin)
 export const editarUsuariAdmin = (usuariId: number, data: { nom: string; telefon: string; rol: string }) => {
   return axios.put(`${API_URL}/usuaris/${usuariId}`, data);
 };
