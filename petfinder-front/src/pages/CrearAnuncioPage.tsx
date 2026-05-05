@@ -246,9 +246,7 @@ const CrearAnuncioPage: React.FC = () => {
         teGeolocalitzacio: teGeolocalitzacio,
         microchipId: teGeolocalitzacio ? microchipId : null,
       };
-      
-      console.log('📤 Enviant anunci:', anunciData);
-      
+            
       await crearAnuncio(user.usuariId, anunciData);
       
       alert('✅ Anunci creat correctament!');

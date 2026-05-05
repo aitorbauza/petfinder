@@ -315,7 +315,6 @@ const AdminEditarAnuncioPage: React.FC = () => {
               longitud: longitud
             }
           });
-          console.log('📍 Ubicació inicial guardada per a la mascota:', mascotaId);
         } catch (geoError) {
           console.error('Error guardant ubicació inicial:', geoError);
         }
