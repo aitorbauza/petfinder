@@ -37,14 +37,12 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
   const isOpeningChat = useRef(false);
   const hasOpenedChat = useRef(false);
 
-
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Carregar converses i missatges no llegits al muntar i cada 5 segons si l'usuari està loguejat
   useEffect(() => {
     if (usuariId) {
       carregarConverses();
@@ -77,7 +75,6 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
     obrirChat();
   }, [openConversaId, openDestinatariId, openDestinatariNom]);
 
-  // Desplaçar-se al final dels missatges quan canvien
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -128,20 +125,17 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
     setLoading(false);
   };
 
-  // Obre conversa amb un usuari per primera vegada, utilitzant el nom rebut de l'anunci
   const obrirConversaAmbUsuari = async (destinatariId: number, destinatariNom?: string | null) => {
     if (isOpeningChat.current) return;
     isOpeningChat.current = true;
     
     setLoading(true);
     
-    // Si ja existeixen missatges, els carreguem
     try {
       const response = await obtenirConverses(usuariId);
       const conversesActualitzades = response.data;
       setConverses(conversesActualitzades);
       
-      // Buscar conversa existent a les converses acabades d'obtenir
       const conversaExistent = conversesActualitzades.find(c => c.altreUsuariId === destinatariId);
       
       if (conversaExistent) {
@@ -190,17 +184,23 @@ const ChatFloatingButton: React.FC<ChatFloatingButtonProps> = ({
       await enviarMissatge(dto);
       setNouMissatge('');
       
-      await carregarConverses();
+      // Recarregar converses
+      const response = await obtenirConverses(usuariId);
+      const conversesActualitzades = response.data;
+      setConverses(conversesActualitzades);
+      
       if (selectedConversa.conversaId !== 0) {
+        // Conversa existent
         await carregarMissatges(selectedConversa.conversaId);
       } else {
-        await carregarConverses();
-        const novaConversa = converses.find(c => c.altreUsuariId === selectedConversa.altreUsuariId);
+        // Conversa nova: buscar la conversa acabada de crear
+        const novaConversa = conversesActualitzades.find(c => c.altreUsuariId === selectedConversa.altreUsuariId);
         if (novaConversa) {
           setSelectedConversa(novaConversa);
           await carregarMissatges(novaConversa.conversaId);
         }
       }
+      
       await carregarNoLlegits();
     } catch (error) {
       console.error('Error enviant missatge:', error);

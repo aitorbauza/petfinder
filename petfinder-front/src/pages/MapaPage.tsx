@@ -601,7 +601,7 @@ const MapaPage: React.FC = () => {
           </button>
 
           <MapContainer
-            center={[41.3851, 2.1734]}
+            center={[39.5696, 2.6502]}
             zoom={13}
             style={styles.map}
           >
@@ -711,7 +711,7 @@ const MapaPage: React.FC = () => {
               <p><strong>Estat:</strong> {selectedAnuncio.estat}</p>
               <p><strong>Ubicació:</strong> {getUbicacioText(selectedAnuncio)}</p>
               {selectedAnuncio.teGeolocalitzacio === true && selectedAnuncio.microchipId && (
-                <p><strong>🔢 Microchip ID:</strong> {selectedAnuncio.microchipId}</p>
+                <p><strong>Microchip ID:</strong> {selectedAnuncio.microchipId}</p>
               )}
               <button
                 style={popupDetailButtonStyle}

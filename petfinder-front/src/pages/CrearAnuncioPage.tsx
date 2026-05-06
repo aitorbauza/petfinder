@@ -83,8 +83,8 @@ const CrearAnuncioPage: React.FC = () => {
   const [especieId, setEspecieId] = useState<EspecieEnumType | null>(null);
   const [raca, setRaca] = useState('');
   const [descripcio, setDescripcio] = useState('');
-  const [latitud, setLatitud] = useState(41.3851);
-  const [longitud, setLongitud] = useState(2.1734);
+  const [latitud, setLatitud] = useState(39.5696);
+  const [longitud, setLongitud] = useState(2.6502);
   const [estatId] = useState(1);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [loading, setLoading] = useState(false);

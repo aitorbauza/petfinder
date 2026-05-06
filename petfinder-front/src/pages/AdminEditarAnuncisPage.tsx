@@ -90,8 +90,8 @@ const AdminEditarAnuncioPage: React.FC = () => {
   const [especieId, setEspecieId] = useState<EspecieEnumType | null>(null);
   const [raca, setRaca] = useState('');
   const [descripcio, setDescripcio] = useState('');
-  const [latitud, setLatitud] = useState(41.3851);
-  const [longitud, setLongitud] = useState(2.1734);
+  const [latitud, setLatitud] = useState(39.5696);
+  const [longitud, setLongitud] = useState(2.6502);
   const [estatId, setEstatId] = useState(1);
   const [imatgeUrl, setImatgeUrl] = useState<string | null>(null);
   const [ciutat, setCiutat] = useState('');
@@ -115,8 +115,8 @@ const AdminEditarAnuncioPage: React.FC = () => {
   const [originalEspecieId, setOriginalEspecieId] = useState<EspecieEnumType | null>(null);
   const [originalRaca, setOriginalRaca] = useState('');
   const [originalDescripcio, setOriginalDescripcio] = useState('');
-  const [originalLatitud, setOriginalLatitud] = useState(41.3851);
-  const [originalLongitud, setOriginalLongitud] = useState(2.1734);
+  const [originalLatitud, setOriginalLatitud] = useState(39.5696);
+  const [originalLongitud, setOriginalLongitud] = useState(2.6502);
   const [originalEstatId, setOriginalEstatId] = useState(1);
   const [originalImatgeUrl, setOriginalImatgeUrl] = useState<string | null>(null);
   const [originalCiutat, setOriginalCiutat] = useState('');
@@ -152,8 +152,8 @@ const AdminEditarAnuncioPage: React.FC = () => {
       setEspecieId(anunci.especieId || null);
       setRaca(anunci.raca || '');
       setDescripcio(anunci.descripcio || '');
-      setLatitud(anunci.latitud || 41.3851);
-      setLongitud(anunci.longitud || 2.1734);
+      setLatitud(anunci.latitud || 39.5696);
+      setLongitud(anunci.longitud || 2.6502);
       setEstatId(anunci.estat === 'Perdut' ? 1 : 2);
       setImatgeUrl(anunci.imatgeUrl || null);
       setCiutat(anunci.ciutat || '');
@@ -167,8 +167,8 @@ const AdminEditarAnuncioPage: React.FC = () => {
       setOriginalEspecieId(anunci.especieId || null);
       setOriginalRaca(anunci.raca || '');
       setOriginalDescripcio(anunci.descripcio || '');
-      setOriginalLatitud(anunci.latitud || 41.3851);
-      setOriginalLongitud(anunci.longitud || 2.1734);
+      setOriginalLatitud(anunci.latitud || 39.5696);
+      setOriginalLongitud(anunci.longitud || 2.6502);
       setOriginalEstatId(anunci.estat === 'Perdut' ? 1 : 2);
       setOriginalImatgeUrl(anunci.imatgeUrl || null);
       setOriginalCiutat(anunci.ciutat || '');
